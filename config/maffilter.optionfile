@@ -1,0 +1,11 @@
+input.file=split_maf/$(SP)/$(DATA).maf.gz  //Input maf file, gzipped
+input.format=Maf
+input.file.compression=gzip
+output.log=maffilter/$(SP)/$(DATA).b$(BLOCK_SIZE).l$(BLOCK_LENGTH).log //Output log file
+maf.filter=                                 \
+    MinBlockSize(min_size=$(BLOCK_SIZE)),\
+    MinBlockLength(min_length=$(BLOCK_LENGTH)),\
+    Output(                                 \
+	file=maffilter/$(SP)/$(DATA).b$(BLOCK_SIZE).l$(BLOCK_LENGTH).maf.gz,          \
+        compression=gzip,                   \
+        mask=yes)\

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Default parameter values — override via command-line arguments in %runscript
+
+export GABBI_DEBUG="${GABBI_DEBUG:-0}"
+export PRE="${PRE:-cactus_alignment}"
+export OUT="${OUT:-GABBI_out}"
+export RESTART="${RESTART:-}"
+export THREADS="${THREADS:-$(nproc)}"
+export CACTUS_MAXDISK="${CACTUS_MAXDISK:-300G}"
+export CACTUS_MAXCORES="${CACTUS_MAXCORES:-32}"
+export BLOCK_LENGTH="${BLOCK_LENGTH:-200}"
+export CROSS_BLAST_EV="${CROSS_BLAST_EV:-1E-6}"
+export CROSS_BLAST_WS="${CROSS_BLAST_WS:-11}"
+export CROSS_BLAST_QC="${CROSS_BLAST_QC:-50}"
+export TEMP_TAX_THRESHOLD="${TEMP_TAX_THRESHOLD:-50}"
+export TEMP_ALLOW_DUPES="${TEMP_ALLOW_DUPES:-1}"
+export SHR_THRESHOLD="${SHR_THRESHOLD:-90}"
+export N_NODES="$(( 2 * N_CHR_TAXA - 1 ))"
+export BLOCK_SIZE="${BLOCK_SIZE:-$(( 7 * N_NODES / 10 ))}"
+export MIN_TAXA_ABS=$(( N_CHR_TAXA * TEMP_TAX_THRESHOLD / 100 ))
+export FP_TILING_DENSITY="${FP_TILING_DENSITY:-3}"
+export FP_MASKING="${FP_MASKING:-0.25}"

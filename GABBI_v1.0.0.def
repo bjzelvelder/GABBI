@@ -1,0 +1,367 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%labels
+    Author      Benjamin Zelvelder
+    Version     1.0.0
+    Description Genome Alignment Based Bait Inference (GABBI): A fully automated probe design pipeline
+                based on whole-genome alignments for target capture phylogenomics
+
+%help
+    GABBI — Genome Alignment-Based Bait Inference pipeline
+    ======================================================
+
+    Required arguments
+    ------------------
+      --chr-genomes   DIR   Directory containing chromosome-level genome assemblies to be aligned with Cactus.
+                            Each genome should reside in its own sub-directory, named <Taxon_name>
+      --guide-tree    FILE  Newick-format species tree used as a guide topology by Cactus
+      --add-genomes   DIR   Directory containing additional genome assemblies to validate SHR loci for final
+                            probe set. Each genome should reside in its own sub-directory, named with
+                            a unique <Taxon_name> 
+
+    Optionnal arguments
+    -------------------
+      Default values are given in square brackets [].
+
+      Pipeline control
+      ----------------
+      --prefix        STR   Prefix used throughout the pipeline specific to your dataset [cactus_alignment]
+      --out-dir, -o   DIR   Directory that will store GABBI outputs [GABBI_out]
+      --restart       FLT   Specify a step to restart when running GABBI again. Valid values are:
+                                    1_cactus_alignment, 2.1_hal2maf, 2.2_split_maf, 2.3_maffilter,
+                                    2.4_phastcons, 2.5_conserved_loci, 3.1_cross_blast, 3.2_shr_clustering,
+                                    4.1_shr_extraction, 4.2_alignments, 4.3_ancestral_seqs, 4.4_temp_loci,
+                                    5.1_temp_probes, 5.2_add_genomes_prep, 5.3_lastz, 5.4_multifasta_table,
+                                    5.5_final_phyluce_probes, 5.6_consensus_loci, 6.1_extract_targeted_loci,
+                                    6.2_align_targeted_loci, 6.3_final_ancestral_seqs, 6.4_final_targeted_loci
+                                    [none]
+      --stop-before   STR   Interrupt the pipeline before the given phase. Valid phases are numbered from 1 to 6:
+                                    01_cactus_alignment, 02_conserved_loci, 03_cross_blast, 04_shr_extraction,
+                                    05_final_phyluce_probes, 06_final_targeted_loci [none]
+      --debug               Print additional diagnostic information to stderr during execution.
+                            Useful for development and troubleshooting [off]
+      --threads, -t   INT   Number of CPU threads to allocate [all available by nproc command]
+      --help, -h            Shows this message and exits
+
+      Genome alignment options
+      ------------------------
+      --cactus-maxDisk  INT   Increase the maximum amount of disk used by cactus, with K, M or G suffix
+                              to specify Kilo, Mega or Gigabytes. [300G]
+      --cactus-maxCores INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
+      --block-size      INT   Minimum number of taxa (including ancestral genomes) required to retain
+                              an alignment block [70 % of extent and ancestral genomes]
+      --block-length    INT   Minimum length (nt) required to retain an alignment block [200]
+
+      Temporary probe options
+      -----------------------
+      --cross-blast-ev     FLT    E-value threshold for cross-BLASTn [1E-6]
+      --cross-blast-ws     INT    Word size for cross-BLASTn [11]
+      --cross-blast-qc     INT    Minimum query coverage (%) for cross-BLASTn [50]
+      --temp-tax-threshold INT    Minimum percentage of taxa sharing a locus after phastCons filtering [50]
+      --temp-allow-dupes   INT    Maximum number of taxa allowed to carry duplicated loci
+                                  after cross-BLASTn filtering [1]
+
+      Final probe design options
+      --------------------------
+      --shr-threshold        INT  Minimum percentage of taxa sharing a final SHR locus to retain it in
+                                  the phyluce probe set [90]
+      --final_probes_tiling  INT  Tiling density used by phyluce to make the final phyluce probe set [3]
+      --final_probes_masking FLT  Maximum fraction of masked sites authorized in the final phyluce probe set [0.25]
+      
+
+%environment
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export PATH=/opt/miniconda3/bin:$PATH
+    export PATH=/root/.local/bin:$PATH
+    export PATH=/opt/blast/bin:$PATH
+    export PATH=/opt/cactus/bin:$PATH
+    export PYTHONPATH=/opt/cactus/lib:$PYTHONPATH
+    export LD_LIBRARY_PATH=/opt/cactus/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/opt/bpp/lib:$LD_LIBRARY_PATH
+    export PATH=/opt/cactus/venv-cactus-v3.1.4/bin:/opt/phast/bin:/opt/maffilter/bin:$PATH
+    export PATH=/opt/ucsc_tools:$PATH
+    export PATH=/opt/gabbi/scripts:$PATH
+    export PATH=/root/perl5/bin:$PATH
+    export LG_UTILS_PATH="/opt/omm_macse/UTILS"
+    export LG_MAFFT="mafft"
+    export LG_MUSCLE="muscle"
+    export LG_PRANK="/opt/prank/bin/prank"
+    export LG_MACSE="/opt/omm_macse/UTILS/macse_v2.08.jar"
+    export LG_HMMCLEANER="/opt/omm_macse/UTILS/HMMcleanerV1_8_VR2/HMMcleanAA_VR.pl"
+    export R_LIBS_USER=/opt/R/library
+    export R_LIBS=/opt/R/library
+    source /opt/miniconda3/etc/profile.d/conda.sh
+    export BASH_ENV=/opt/etc/bashrc
+
+%setup
+    :
+
+%files
+    main.sh                                   /opt/gabbi/main.sh
+    config/maffilter.optionfile               /opt/gabbi/config/maffilter.optionfile
+    config/phylomera.conf                     /opt/gabbi/config/phylomera.conf
+    utils/gabbi_functions.sh                  /opt/gabbi/utils/gabbi_functions.sh
+    utils/defaults.sh                         /opt/gabbi/utils/defaults.sh
+    utils/checkpoint.sh                       /opt/gabbi/utils/checkpoint.sh
+    phases/01_cactus_alignment.sh             /opt/gabbi/phases/01_cactus_alignment.sh
+    phases/02_conserved_loci.sh               /opt/gabbi/phases/02_conserved_loci.sh
+    phases/03_cross_blast.sh                  /opt/gabbi/phases/03_cross_blast.sh
+    phases/04_shr_extraction.sh               /opt/gabbi/phases/04_shr_extraction.sh
+    phases/05_final_phyluce_probes.sh         /opt/gabbi/phases/05_final_phyluce_probes.sh
+    phases/06_final_targeted_loci.sh          /opt/gabbi/phases/06_final_targeted_loci.sh
+    scripts/clean_amas_partition.py           /opt/gabbi/scripts/clean_amas_partition.py
+    scripts/drop_short_seq.py                 /opt/gabbi/scripts/drop_short_seq.py
+    scripts/make_partition_from_probe2.py     /opt/gabbi/scripts/make_partition_from_probe2.py
+    scripts/extract_chromosomes_from_maf.py   /opt/gabbi/scripts/extract_chromosomes_from_maf.py
+    scripts/regroup_matches_from_blastn.py    /opt/gabbi/scripts/regroup_matches_from_blastn.py
+    scripts/get_tiled_probes.py               /opt/gabbi/scripts/get_tiled_probes.py
+    scripts/remove_flank.py                   /opt/gabbi/scripts/remove_flank.py
+    scripts/phylomera_v0.8.3.sh               /opt/gabbi/scripts/phylomera_v0.8.3.sh
+    scripts/merge_overlapping_seq_in_fasta.py /opt/gabbi/scripts/merge_overlapping_seq_in_fasta.py
+    scripts/make_consensus_from_mafft_v2.R    /opt/gabbi/scripts/make_consensus_from_mafft_v2.R
+#    scripts/aTRAM.sif                         /opt/gabbi/scripts/aTRAM.sif
+#    scripts/run_BBMap.sh                      /opt/gabbi/scripts/run_BBMAP.sh
+
+%post -c bash
+    # ===========================================================================
+    # System dependencies
+    # ===========================================================================
+    apt-get update && apt-get upgrade -y
+    apt-get install -y tzdata
+    apt-get install -y --no-install-recommends \
+        wget curl git ca-certificates \
+        build-essential cmake automake \
+        python3 python3-dev python3-pip python3-venv \
+        parallel \
+        vim less \
+	bzip2 rsync \
+        libpcre3-dev libblas-dev liblapack-dev \
+        cpanminus \
+        openjdk-8-jre
+        # muscle=1:3.8.31+dfsg-1 for macse
+        # hmmer=3.1b2-2 for macse
+        # mafft=7.271-1 for macse
+    
+    export DEBIAN_FRONTEND=noninteractive
+
+    # ===========================================================================
+    # Python packages
+    # ===========================================================================
+    pip3 install --no-cache-dir biopython==1.78
+    pip3 install --no-cache-dir virtualenv
+
+    # ===========================================================================
+    # R 4.5 and packages
+    # ===========================================================================
+    # Add CRAN repository for R 4.5
+    apt-get install -y --no-install-recommends \
+	software-properties-common \
+	dirmngr \
+	gnupg \
+	apt-transport-https
+
+    # Add CRAN GPG key and repository
+    wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc \
+	| gpg --dearmor \
+	| tee /usr/share/keyrings/r-project.gpg > /dev/null
+
+    echo "deb [signed-by=/usr/share/keyrings/r-project.gpg] \
+	https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/" \
+	> /etc/apt/sources.list.d/r-project.list
+
+    apt-get update -y
+    apt-get install -y --no-install-recommends \
+        r-base \
+        r-base-dev \
+	libcurl4-openssl-dev \
+	libssl-dev \
+	libxml2-dev
+
+    # Install R packages
+    mkdir -p /opt/R/library
+    Rscript -e "
+      install.packages(
+	c('ape', 'stringr', 'igraph'),
+	lib   = '/opt/R/library',
+	repos = 'https://cloud.r-project.org',
+	Ncpus = parallel::detectCores()
+      )
+    "
+
+    # ===========================================================================
+    # Tool installation
+    # ===========================================================================
+
+    # -- Cigar 0.1.3 : prebuild wheel to fix an error during th venv creation ---
+    pip3 download --no-deps --no-binary :all: cigar==0.1.3 -d /tmp/cigar_dl
+    cd /tmp && tar -xzf /tmp/cigar_dl/cigar-0.1.3.tar.gz && cd cigar-0.1.3
+
+    # Neutralize ez_setup.py
+cat > ez_setup.py << 'EOF'
+def use_setuptools(*args, **kwargs):
+    pass
+EOF
+    
+    pip3 install build
+    python3 -m build --wheel --outdir /tmp/cigar_wheel/
+
+    # -- Cactus3.1.4 + Toil 7.0.0 -----------------------------------------------
+    cd /opt
+    wget https://github.com/ComparativeGenomicsToolkit/cactus/releases/download/v3.1.4/cactus-bin-v3.1.4.tar.gz
+    mkdir /opt/cactus
+    tar -xzf cactus-bin-v3.1.4.tar.gz -C /opt/cactus --strip-components=1
+    rm cactus-bin-v3.1.4.tar.gz
+    cd /opt/cactus
+    git config --global --add safe.directory /opt/cactus
+
+    virtualenv -p python3 venv-cactus-v3.1.4
+    printf "export PATH=$(pwd)/bin:\$PATH\nexport PYTHONPATH=$(pwd)/lib:\$PYTHONPATH\nexport LD_LIBRARY_PATH=$(pwd)/lib:\$LD_LIBRARY_PATH\n" >> venv-cactus-v3.1.4/bin/activate
+    source /opt/cactus/venv-cactus-v3.1.4/bin/activate
+    python3 -m pip install -U setuptools pip wheel
+    python3 -m pip install --no-index --find-links /tmp/cigar_wheel cigar
+    python3 -m pip install -U .
+    python3 -m pip install -U -r ./toil-requirement.txt
+    
+    # -- PHAST 1.6 (phastCons, phyloFit) ----------------------------------------
+    mkdir /tmp/phast
+    cd /tmp/phast
+    wget https://github.com/CshlSiepelLab/phast/archive/refs/tags/v1.9.7.tar.gz
+    tar -zxf v1.9.7.tar.gz
+    mkdir /opt/phast
+    mv phast-1.9.7/* /opt/phast/
+    cd /opt/phast
+    # fix an error with exp@@GLIBC_2.29
+    sed -i '1s/^/link_libraries(m)\n/' CMakeLists.txt
+
+    cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/opt/phast
+    cmake --build build
+    cmake --install build
+
+
+    # -- Maffilter 1.3.1 --------------------------------------------------------
+    # Bio++ and eigen3
+    apt-get install -y libeigen3-dev \
+        libboost-all-dev \
+        libbz2-dev
+    for lib in bpp-core bpp-seq bpp-seq-omics bpp-phyl bpp-phyl-omics bpp-popgen; do
+	git clone --branch v3.0.0 https://github.com/BioPP/${lib} /tmp/${lib}
+	cmake -S /tmp/${lib} -B /tmp/${lib}/build \
+	    -DCMAKE_INSTALL_PREFIX=/opt/bpp \
+	    -DBUILD_TESTING=OFF
+	cmake --build /tmp/${lib}/build -j$(nproc)
+	cmake --install /tmp/${lib}/build
+	rm -rf /tmp/${lib}
+    done
+    
+    cd /opt
+    git clone https://github.com/jydu/maffilter
+    cd maffilter  
+    sed -i 's/find_package(bpp-core [0-9.]*/find_package(bpp-core/g' CMakeLists.txt
+    sed -i 's/find_package(bpp-seq [0-9.]*/find_package(bpp-seq/g' CMakeLists.txt
+    sed -i 's/find_package(bpp-seq-omics [0-9.]*/find_package(bpp-seq-omics/g' CMakeLists.txt
+    sed -i 's/find_package(bpp-phyl [0-9.]*/find_package(bpp-phyl/g' CMakeLists.txt
+    sed -i 's/find_package(bpp-phyl-omics [0-9.]*/find_package(bpp-phyl-omics/g' CMakeLists.txt
+    sed -i 's/find_package(bpp-popgen [0-9.]*/find_package(bpp-popgen/g' CMakeLists.txt
+
+    cmake -DCMAKE_INSTALL_PREFIX=/opt/maffilter -DCMAKE_PREFIX_PATH=/opt/bpp .
+    make install
+
+    # -- Phyluce ----------------------------------------------------------------
+    # Conda/miniconda
+    mkdir -p /opt/miniconda3
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /opt/miniconda3/miniconda.sh
+    bash /opt/miniconda3/miniconda.sh -b -u -p /opt/miniconda3
+    rm /opt/miniconda3/miniconda.sh
+    source /opt/miniconda3/bin/activate
+    conda init --all
+
+    # Phyluce
+    mkdir /opt/phyluce
+    cd /opt/phyluce
+    wget https://raw.githubusercontent.com/faircloth-lab/phyluce/v1.7.3/distrib/phyluce-1.7.3-py36-Linux-conda.yml
+    conda tos accept
+    conda env create -n phyluce --file phyluce-1.7.3-py36-Linux-conda.yml
+
+    # -- BLAST+ 2.17.0+ ---------------------------------------------------------
+    mkdir /tmp/blast
+    cd /tmp/blast
+    wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.17.0+-x64-linux.tar.gz
+    tar -zxf ncbi-blast-2.17.0+-x64-linux.tar.gz
+    mkdir /opt/blast
+    mv ncbi-blast-2.17.0+/* /opt/blast
+    
+
+    # -- IQ-TREE 3.0.1 ----------------------------------------------------------
+    conda install -y bioconda::iqtree==3.0.1
+
+#    # -- BBMap (Sept 2022) ------------------------------------------------------
+#    cd /opt
+#    wget https://sourceforge.net/projects/bbmap/files/BBMap_39.77.tar.gz
+#    tar -xzf BBMap_39.77.tar.gz
+#    rm BBMap_39.77.tar.gz
+
+    # -- SeqKit 2.9.0 -----------------------------------------------------------
+    conda install -y -c bioconda seqkit
+
+    # -- faToTwoBit -------------------------------------------------------------
+    mkdir -p /opt/ucsc_tools
+    wget -P /opt/ucsc_tools https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/faToTwoBit
+
+    # -- MAFFT ------------------------------------------------------------------
+    conda install -y conda-forge::mafft
+
+#    # -- NCBI datasets CLI ------------------------------------------------------
+#    conda install -y -c conda-forge ncbi-datasets-cli
+
+    # -- HmmCleaner -----------------------------------------------------------
+    apt-get install -y --no-install-recommends \
+	hmmer libssl-dev \
+	libnet-ssleay-perl libio-socket-ssl-perl \
+	libmoose-perl libmoosex-strictconstructor-perl \
+	liblist-moreutils-perl
+    cpanm --force Test::Files
+    cpanm Bio::MUST::Core
+    cpanm Bio::MUST::Drivers
+    cpanm --force Bio::MUST::Apps::HmmCleaner
+    sed -i '1s|.*|#!/usr/bin/env perl|' /root/perl5/bin/HmmCleaner.pl
+
+    # -- OMM_MACSE pipeline -----------------------------------------------------
+    # These are fetched from OMM_MACSE_V12.02_sing_3.def
+
+    mkdir /opt/omm_macse
+
+    # Prank
+    wget http://wasabiapp.org/download/prank/prank.linux64.170427.tgz
+    tar -zxf prank.linux64.170427.tgz
+    rm prank.linux64.170427.tgz
+
+    git clone https://github.com/ranwez/MACSE_V2_PIPELINES.git /tmp/MACSE_V2_PIPELINES
+
+    mv /tmp/MACSE_V2_PIPELINES/OMM_MACSE /opt/omm_macse
+    mv /tmp/MACSE_V2_PIPELINES/UTILS /opt/omm_macse
+
+    rm -rf /opt/omm_macse/OMM_MACSE/V*_FREEZED
+    rm -rf /opt/omm_macse/UTILS/macse_v2.03.jar /opt/omm_macse/UTILS/macse_v2.05.jar /opt/omm_macse/UTILS/macse_v2.07.jar
+    rm -rf /opt/omm_macse/OMM_MACSE/examples
+    rm -rf /tmp/MACSE_V2_PIPELINES
+
+    # -- Other Phylomera dependencies -------------------------------------------
+    conda install bioconda::seqkit
+    python3 -m pip install -U amas
+
+    # Make all tools executable
+    find /opt/gabbi \( -name "*.sh" -o -name "*.py" \) -exec chmod +x {} \;
+    chmod +x /opt/ucsc_tools/faToTwoBit
+    chmod 755 /opt/omm_macse/OMM_MACSE/*.sh
+    chmod -R 755 /opt/omm_macse/UTILS/LGS_Fasta/*.sh
+    chmod +x /opt/miniconda3/lib/python3.13/site-packages/amas/AMAS.py
+
+%runscript
+    exec /opt/gabbi/main.sh "$@"
+
+# build using Singularity >= 3.8 or Apptainer >= 1.0 on IFB VM
+# singularity build GABBI_vx.x.x.sif GABBI_vx.x.X.def
+# singularity run -B $PWD GABBI_vx.x.x.sif <options>
+# singularity run-help GABBI_vx.x.x.sif
