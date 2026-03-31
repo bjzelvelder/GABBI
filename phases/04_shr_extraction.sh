@@ -92,7 +92,7 @@ if checkpoint_done "step4.3_ancestral_seqs"; then
 else
     # Check the number of taxa before making ancestral seqs
     if [[ "$N_CHR_TAXA" -le 3 ]]; then
-	echo "[GABBI] Warning: Unable to compute ancestral sequences on fewer than 4 taxa. Keeping cleaned sequences for temporary prbes."
+	echo "[GABBI] WARNING: Unable to compute ancestral sequences on fewer than 4 taxa. Keeping clean sequences for temporary probes."
 	parallel --plus -j "$THREADS" '
 	    sed -E -e "/>/ s/>/>{/...}|/g" -e "/>/! s/[-N]//g" -e "s/\.temp\.mafft//g" {}
 	' ::: alignments/TMP.phylomera.${PRE}/FASTA/*dropped0 \
