@@ -5,14 +5,62 @@ Genome Alignment Based Bait Inference (GABBI)
 **GABBI** is a fully automated pipeline to design target capture **probes** (or baits) based on **whole-genome alignments**
 
 # Requirements
-To run this pipeline, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.0.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
+To run this pipeline, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
 
 # Table of contents
 
 # Installation
+The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-called _singularity image_) to avoid installation issues and incompatibilities. Thus, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.0.0 installed. This software can be installed following this tutorial: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, I will always refer to ```singularity``` rather than ```apptainer``` but all commands that start with ```singularity ...``` can be spelled ```apptainer ...```. 
 
+## Downloading the GABBI singularity image
+Because a singularity image is too heavy to be stored on and pulled from github, you will not find the ```.sif``` file in this repository. However, the GABBI image can simply be pulled from the **Sylabs remote repository** with this command:
 
-# How to run the GABBI pipeline
+```
+singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.0.0
+```
+You should then be able to see the help section with:
+```
+singularity run-help gabbi_v1.0.0.sif
+singularity run gabbi_v1.0.0.sif --help
+```
+
+## Building from 'source'
+If previous commands doesn't work or that you want make local modifications to the GABBI scripts, you can build the singularity image yourself using the definition file ```.def```. 
+First, get GABBI files by cloning the GABBI repository with:
+```
+git clone https://github.com/bjzelvelder/GABBI.git
+cd GABBI
+```
+At that point, you can build the GABBI singularity image (which should take about 40 minutes) if you only want to build the image and run GABBI. You can also build a GABBI sandbox to run the pipeline interactively (for debugging purposes).
+
+### Building the GABBI singularity image
+Inside GABBI's repository, simply execute:
+```
+singularity build --fakeroot GABBI_v1.0.0.sif GABBI_v1.0.0.def
+```
+This will create a ```.sif``` image that can be run the same way with:
+```
+singularity run-help GABBI_v1.0.0.sif
+```
+
+### Building a GABBI sandbox
+Alternatively, if you want to make modifications to the GABBI scripts or simply run the pipeline more interactively from within the singularity image (environment), you can make a GABBI sandbox with a writable fakeroot that will be stored in ```GABBI_sandbox/```:
+```
+singularity build GABBI_sandbox/ GABBI_v1.0.0.def
+mkdir -p GABBI_sandbox/$PWD
+singularity shell -B $PWD --fakeroot --writable GABBI_sandbox/
+```
+Once you run singularity shell, you are inside the singularity image. Please be aware that binding your local path with ```-B $PWD``` allows GABBI to access your local files, but you can still make changes to them **even if you are inside the singularity image**.
+You can now run the GABBI pipeline by launching the ```main.sh``` script:
+```
+source /opt/gabbi/main.sh --help
+```
+Note: because of the ```set -eou pipefail``` command inside main.sh, errors might eject you from the singularity image. To avoid having to connect back to the sandbox repeatidily, run this command after sourcing ```main.sh```:
+```
+set +eou pipefail
+```
+
+# How to use the GABBI pipeline
 
 
 
@@ -79,7 +127,6 @@ To run this pipeline, all you need is a linux environment with ```apptainer``` v
                                   the phyluce probe set [90]
       --final_probes_tiling  INT  Tiling density used by phyluce to make the final phyluce probe set [3]
       --final_probes_masking FLT  Maximum fraction of masked sites authorized in the final phyluce probe set [0.25]
-
 ```
 
 # Citation
