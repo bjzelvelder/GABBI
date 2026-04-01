@@ -1,0 +1,62 @@
+
+    GABBI — Genome Alignment-Based Bait Inference pipeline
+    ======================================================
+
+    Required arguments
+    ------------------
+      --chr-genomes   DIR   Directory containing chromosome-level genome assemblies to be aligned with Cactus.
+                            Each genome should reside in its own sub-directory, named <Taxon_name>
+      --guide-tree    FILE  Newick-format species tree used as a guide topology by Cactus
+      --add-genomes   DIR   Directory containing additional genome assemblies to validate SHR loci for final
+                            probe set. Each genome should reside in its own sub-directory, named with
+                            a unique <Taxon_name> 
+
+    Optionnal arguments
+    -------------------
+      Default values are given in square brackets [].
+
+      Pipeline control
+      ----------------
+      --prefix        STR   Prefix used throughout the pipeline specific to your dataset [cactus_alignment]
+      --out-dir, -o   DIR   Directory that will store GABBI outputs [GABBI_out]
+      --restart       FLT   Specify a step to restart when running GABBI again. Valid values are:
+                                    1_cactus_alignment, 2.1_hal2maf, 2.2_split_maf, 2.3_maffilter,
+                                    2.4_phastcons, 2.5_conserved_loci, 3.1_cross_blast, 3.2_shr_clustering,
+                                    4.1_shr_extraction, 4.2_alignments, 4.3_ancestral_seqs, 4.4_temp_loci,
+                                    5.1_temp_probes, 5.2_add_genomes_prep, 5.3_lastz, 5.4_multifasta_table,
+                                    5.5_final_phyluce_probes, 5.6_consensus_loci, 6.1_extract_targeted_loci,
+                                    6.2_align_targeted_loci, 6.3_final_ancestral_seqs, 6.4_final_targeted_loci
+                                    [none]
+      --stop-before   STR   Interrupt the pipeline before the given phase. Valid phases are numbered from 1 to 6:
+                                    01_cactus_alignment, 02_conserved_loci, 03_cross_blast, 04_shr_extraction,
+                                    05_final_phyluce_probes, 06_final_targeted_loci [none]
+      --debug               Print additional diagnostic information to stderr during execution.
+                            Useful for development and troubleshooting [off]
+      --threads, -t   INT   Number of CPU threads to allocate [all available by nproc command]
+      --help, -h            Shows this message and exits
+
+      Genome alignment options
+      ------------------------
+      --cactus-maxDisk  INT   Increase the maximum amount of disk used by cactus, with K, M or G suffix
+                              to specify Kilo, Mega or Gigabytes. [50G]
+      --cactus-maxCores INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
+      --block-size      INT   Minimum number of taxa (including ancestral genomes) required to retain
+                              an alignment block [70 % of extent and ancestral genomes]
+      --block-length    INT   Minimum length (nt) required to retain an alignment block [200]
+
+      Temporary probe options
+      -----------------------
+      --cross-blast-ev     FLT    E-value threshold for cross-BLASTn [1E-6]
+      --cross-blast-ws     INT    Word size for cross-BLASTn [11]
+      --cross-blast-qc     INT    Minimum query coverage (%) for cross-BLASTn [50]
+      --temp-tax-threshold INT    Minimum percentage of taxa sharing a locus after phastCons filtering [50]
+      --temp-allow-dupes   INT    Maximum number of taxa allowed to carry duplicated loci
+                                  after cross-BLASTn filtering [1]
+
+      Final probe design options
+      --------------------------
+      --shr-threshold        INT  Minimum percentage of taxa sharing a final SHR locus to retain it in
+                                  the phyluce probe set [90]
+      --final_probes_tiling  INT  Tiling density used by phyluce to make the final phyluce probe set [3]
+      --final_probes_masking FLT  Maximum fraction of masked sites authorized in the final phyluce probe set [0.25]
+

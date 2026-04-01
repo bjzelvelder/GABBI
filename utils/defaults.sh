@@ -6,8 +6,12 @@ export PRE="${PRE:-cactus_alignment}"
 export OUT="${OUT:-GABBI_out}"
 export RESTART="${RESTART:-}"
 export THREADS="${THREADS:-$(nproc)}"
-export CACTUS_MAXDISK="${CACTUS_MAXDISK:-300G}"
-export CACTUS_MAXCORES="${CACTUS_MAXCORES:-32}"
+export CACTUS_MAXDISK="${CACTUS_MAXDISK:-50G}"
+if [ ${CACTUS_MAXCORES:-32} > ${THREADS:-$(nproc)} ]; then
+    export CACTUS_MAXCORES="${THREADS:-$(nproc)}"
+else
+    export CACTUS_MAXCORES="${CACTUS_MAXCORES:-32}"
+fi
 export BLOCK_LENGTH="${BLOCK_LENGTH:-200}"
 export CROSS_BLAST_EV="${CROSS_BLAST_EV:-1E-6}"
 export CROSS_BLAST_WS="${CROSS_BLAST_WS:-11}"

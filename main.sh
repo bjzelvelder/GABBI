@@ -43,9 +43,6 @@ while [[ $# -gt 0 ]]; do
         --final-probes-tiling)  export FP_TILING_DENSITY="$2";     shift 2 ;;
         --final-probes-masking) export FP_MASKING="$2";            shift 2 ;;
 
-	# -- Help / unknown -------------------------------------------------
-	-h|--help) exec singularity run-help "$SINGULARITY_CONTAINER"; exit 0 ;;
-
 	*) echo "[GABBI] ERROR: Unknown argument: $1" >&2; exit 1 ;;
 
     esac
