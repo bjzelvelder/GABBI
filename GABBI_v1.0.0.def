@@ -308,8 +308,15 @@ EOF
     chmod +x /opt/miniconda3/lib/python3.13/site-packages/amas/AMAS.py
 
 %runscript
+    #!/usr/bin/env bash
 
-    [[ "$1" == "--help" || "$1" == "-h" ]] && cat /opt/gabbi/config/help.txt && exit 0
+    # Handle --help before anything else
+    for arg in "$@"; do
+        if [[ "$arg" == "--help" || "$arg" == "-h" ]]; then
+            cat /opt/gabbi/config/help.txt
+            exit 0
+        fi
+    done
 
     exec /opt/gabbi/main.sh "$@"
 
