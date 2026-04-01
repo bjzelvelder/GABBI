@@ -16,18 +16,19 @@ The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-
 Because a singularity image is too heavy to be stored on and pulled from github, you will not find the ```.sif``` file in this repository. However, the GABBI image can simply be pulled from the **Sylabs remote repository** with this command:
 
 ```
-singularity pull 
+singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.0.0
 ```
 You should then be able to see the help section with:
 ```
-singularity run-help GABBI_v1.0.0.sif
+singularity run-help gabbi_v1.0.0.sif
+singularity run gabbi_v1.0.0.sif --help
 ```
 
-## Building 'from source'
+## Building from 'source'
 If previous commands doesn't work or that you want make local modifications to the GABBI scripts, you can build the singularity image yourself using the definition file ```.def```. 
 First, get GABBI files by cloning the GABBI repository with:
 ```
-git clone ...
+git clone https://github.com/bjzelvelder/GABBI.git
 cd GABBI
 ```
 At that point, you can build the GABBI singularity image (which should take about 40 minutes) if you only want to build the image and run GABBI. You can also build a GABBI sandbox to run the pipeline interactively (for debugging purposes).
@@ -126,7 +127,6 @@ set +eou pipefail
                                   the phyluce probe set [90]
       --final_probes_tiling  INT  Tiling density used by phyluce to make the final phyluce probe set [3]
       --final_probes_masking FLT  Maximum fraction of masked sites authorized in the final phyluce probe set [0.25]
-
 ```
 
 # Citation
