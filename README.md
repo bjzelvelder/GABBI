@@ -1,20 +1,29 @@
 # GABBI pipeline version 1.0.0
-Genome Alignment Based Bait Inference (GABBI)
+Genome Alignment-Based Bait Inference
 
 
-**GABBI** is a fully automated pipeline to design target capture **probes** (or baits) based on **whole-genome alignments**
+**GABBI** is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**
 
 # Requirements
 To run this pipeline, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
 
 # Table of contents
+1. [Installation](#installation)
+    - [RECOMMENDED: Downloading the GABBI singularity image](#downloading-the-gabbi-singularity-image)
+    - [Building from source (in a singularity image or a sandbox)](#building-from-source)
+2. [Pipeline overview](#pipeline-overview)
+3. [How to use the GABBI pipeline](#how-to-use-the-gabbi-pipeline)
+    - [Preparing input data](#preparing-input-data) 
+4. [Detailed options](#detailed-options)
+5. [Citation](#citation)
+6. [References](#references)
 
+---
 # Installation
 The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-called _singularity image_) to avoid installation issues and incompatibilities. Thus, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.0.0 installed. This software can be installed following this tutorial: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, I will always refer to ```singularity``` rather than ```apptainer``` but all commands that start with ```singularity ...``` can be spelled ```apptainer ...```. 
 
 ## Downloading the GABBI singularity image
-Because a singularity image is too heavy to be stored on and pulled from github, you will not find the ```.sif``` file in this repository. However, the GABBI image can simply be pulled from the **Sylabs remote repository** with this command:
-
+Because a singularity image is too heavy to be stored and pulled from github, you will not find the ```.sif``` file in this repository. However, the GABBI image is stored on the **Sylabs** remote repository and can simply be pulled with this command:
 ```
 singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.0.0
 ```
@@ -36,11 +45,11 @@ At that point, you can build the GABBI singularity image (which should take abou
 ### Building the GABBI singularity image
 Inside GABBI's repository, simply execute:
 ```
-singularity build --fakeroot GABBI_v1.0.0.sif GABBI_v1.0.0.def
+singularity build --fakeroot gabbi_v1.0.0.sif GABBI_v1.0.0.def
 ```
 This will create a ```.sif``` image that can be run the same way with:
 ```
-singularity run-help GABBI_v1.0.0.sif
+singularity run GABBI_v1.0.0.sif --help
 ```
 
 ### Building a GABBI sandbox
@@ -59,14 +68,33 @@ Note: because of the ```set -eou pipefail``` command inside main.sh, errors migh
 ```
 set +eou pipefail
 ```
+---
+# Pipeline overview
+The GABBI pipeline is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**. As opposed to other commonly used methods of probe design, **no base taxon** needs to be specified, and the final set of targeted loci tend to be more variable than ultraconserved elements (UCE) and are refered to as shared homologous regions (SHR). Further details on the context and signficance of this new probe design method can be accessed through the [publication](#references) that features the GABBI pipeline.
+
+The GABBI pipeline can be segmented into 6 phases:
+  1) Aligning chromosome-level genomes using [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus?tab=readme-ov-file) (Armstrong et al. 2020)
+  2) Identifying conserved regions using [PhastCons](http://compgen.cshl.edu/phast/phastCons-tutorial.php) (Hubisz et al. 2011)
+  3) Extracting shared conserved regions between chromosome-level genomes using BLAST (NCBI; Altschul 2017)
+  4) Making a temporary probe set out of these shared conserved regions enriched with ancestral sequences using IQ-TREE 3 (Wong et al. 2025)
+  5) Testing the temporary probe set with _in silico_ target capture on additional genomes using [PHYLUCE](https://phyluce.readthedocs.io/en/latest/purpose.html) (Faircloth 2016)
+  6) Extracting the final set of SHR (or targeted loci) enriched with ancestral sequences
+
+The goal of this pipeline is to allow anyone wishing to make a set of specific target capture baits as straightforward as possible, while still being versatile to user specifics. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (though high quality, scaffold-level genomes might work fine for our purposes), and an additionnal set of **whole-genome assemblies**. Each step of the pipeline is checkpointed to save time and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset specifics (see [detailed options](#detailed-options)).
+
+> **Note:** When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline
+> took roughly 13 hours and 30 minutes to run in total. As it is strongly paralellized, we strongly recommend giving as
+> much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets.
 
 # How to use the GABBI pipeline
+## Preparing input data
+### Downloading NCBI genomes
+### Organizing directory architecture
 
-
-
+# Tips and perspectives
 
 # Detailed options
-```shell
+```
     GABBI — Genome Alignment-Based Bait Inference pipeline
     ======================================================
 
