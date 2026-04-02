@@ -97,10 +97,22 @@ Once you have fetched the GABBI singularity image and succesfully ran the help c
 GABBI only requires three arguments to run: ```--chr-genomes```, ```--guide-tree```, and ```--add-genomes```. Thus, we need to [download](#downloading-ncbi-genomes) and [organize](#organizing-directory-architecture) the genomes that will be used for the probe design and provide a phylogenetic tree of the chromosome-level genomes to [guide genomic alignment](#getting-a-guide-tree). But first, there are a few things to note on how to [choose those genomes](#choosing-representative-taxa).
 
 ### Choosing representative taxa
-Ultimately, the goal of a probe set is to be able to hybridize with the fragmnted DNA of any taxon from our targeted taxonomic scale. Thus, we want our probe sequences to efficiently map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa (e.g. 7 taxa were used to represent the 400k species of Coleoptera)  Here are a few things you should have in mind:
-- y
+Ultimately, the goal of a probe set is to efficiently hybridize with the fragmented DNA of any taxon from our targeted taxonomic scale. Thus, we want as much as possible that our probe sequences map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa (typically, only 7 taxa represent the 400k species of the Coleoptera UCE probe set). So here are a few things you should have in mind:
+- Verify the taxonomic redundancy in available genomes, as there is often a great bias with some genus/tribe overrepresented while entire families can be completely missing. The taxonomic redundancy will make selected markers appear more shared than expected.
+- Having too much genomes in the dataset could rapidly become computationnaly intensive and costly to synthesize enormous amounts of probes, but further research is needed to quantify this optimum.
+- Genomic alignment should be conducted on chromosome-level (or very high quality) genomes and validated with a separate set of additional genomes. But testing the final probe set with a third set of genomes/raw data can also be useful!
+
+With that in mind, you can check available genomes at [NCBI](https://www.ncbi.nlm.nih.gov/datasets/genome/) and play with filters and column selection to fine-tune your selection.
 
 ### Downloading NCBI genomes
+Once you have chosen the genomes you want to represent in your probe design, you can either download them by hand or use the ```download_genomes_ncbi.sh``` script to download them. In this case, simply download a table of your active selection:
+<p align="center">
+  <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="400"/>
+</p>
+And give it as argument to the script:
+```
+./download_genomes_ncbi.sh [path_to_ncbi_table]
+```
 High quality, chromosome-level genomes are strongly recommended for cactus whole-genome alignment, so they will be stored in a seperate folder as other genomes. As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder named after the taxon name you want to keep during the analysis. If you have multiple
 
 
