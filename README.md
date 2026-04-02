@@ -1,8 +1,12 @@
 # GABBI pipeline version 1.0.0
-Genome Alignment-Based Bait Inference
+a **G**enome **A**lignment-**B**ased **B**ait **I**nference pipeline
 
 
-**GABBI** is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**
+**GABBI** is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**.
+GABBI-derived probe sets are expected to be larger and target more variable loci than usual probe design methods that rely on a base genome to map reads, providing more sensitive and phylogenetically resolutive data.
+
+This pipeline was designed in this publication to produce the first set of weevil-specific probes. If you use GABBI, pleasae cite:
+> Zelvelder B, ... GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... doi:X
 
 # Requirements
 To run this pipeline, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
@@ -70,7 +74,7 @@ set +eou pipefail
 ```
 ---
 # Pipeline overview
-The GABBI pipeline is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**. As opposed to other commonly used methods of probe design, **no base taxon** needs to be specified, and the final set of targeted loci tend to be more variable than ultraconserved elements (UCE) and are refered to as shared homologous regions (SHR). Further details on the context and signficance of this new probe design method can be accessed through the [publication](#references) that features the GABBI pipeline.
+The GABBI pipeline is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**. As opposed to other commonly used methods of probe design, GABBI doesn't rely on a **base taxon**. The final set of targeted loci tend to be more variable than ultraconserved elements (UCE) and are referred to as shared homologous regions (SHR). Further details on the context and signficance of this new probe design method can be accessed through the [publication](#citation) that features the GABBI pipeline.
 
 The GABBI pipeline can be segmented into 6 phases:
   1) Aligning chromosome-level genomes using [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus?tab=readme-ov-file) (Armstrong et al. 2020)
@@ -87,9 +91,31 @@ The goal of this pipeline is to allow anyone wishing to make a set of specific t
 > much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets.
 
 # How to use the GABBI pipeline
+Once you have fetched the GABBI singularity image and succesfully ran the help command, GABBI is ready to go. To help you prepare input data and reading GABBI output, this section will guide you through each option in greater details using a small examplar dataset available in ```example_data```. This examplar dataset contains 4 chromosome-level genomes and 7 additional genomes of a small sample of weevils that belong to the Curculioninae subfamily (sensu 'CCCMS').
+
 ## Preparing input data
+GABBI only requires three arguments to run: ```--chr-genomes```, ```--guide-tree```, and ```--add-genomes```. Thus, we need to [download](#downloading-ncbi-genomes) and [organize](#organizing-directory-architecture) the genomes that will be used for the probe design and provide a phylogenetic tree of the chromosome-level genomes to [guide genomic alignment](#getting-a-guide-tree). But first, there are a few things to note on how to [choose those genomes](#choosing-representative-taxa).
+
+### Choosing representative taxa
+Ultimately, the goal of a probe set is to be able to hybridize with the fragmnted DNA of any taxon from our targeted taxonomic scale. Thus, we want our probe sequences to efficiently map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa (e.g. 7 taxa were used to represent the 400k species of Coleoptera)  Here are a few things you should have in mind:
+- y
+
 ### Downloading NCBI genomes
+High quality, chromosome-level genomes are strongly recommended for cactus whole-genome alignment, so they will be stored in a seperate folder as other genomes. As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder named after the taxon name you want to keep during the analysis. If you have multiple
+
+
+Genomes https://www.ncbi.nlm.nih.gov/datasets/docs/v2/command-line-tools/download-and-install/
+
 ### Organizing directory architecture
+
+### Getting a guide tree
+
+> **Notes:**
+> - You can add your own genomic assemblies by following the same directory architecture, just make sure that your assembly ends with ```.fasta``` or ```.fna```
+> - Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#).
+
+## Setting up the pipeline
+
 
 # Tips and perspectives
 
