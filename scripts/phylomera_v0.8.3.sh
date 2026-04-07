@@ -595,6 +595,7 @@ if [ "$skip_phylomera" = false ];then
     $PARALLEL -j "$THREADS" "cat {}  | sed -e '/>/s/$/#/g' -e '/>/s/^/#/g'| tr -d '\n'| tr '#' '\n'| sed '/^$/d' | sed -E '/>/s/>[ _]R[ _]/>/g'|sed '/>REF/{N;d;}' > FASTA/{/.}.ok.fasta" :::: aligned_files.txt
     find FASTA -type f -name "*.ok.fasta" > aligned_files.txt
 
+    [[ -d $TMP/MACSE ]] && rm -rf $TMP/MACSE
     # Annotate coding and non coding regions
     if [ "$ann_format" = "probe" ];then
         # Probe annotation only
@@ -695,6 +696,7 @@ if [ "$skip_phylomera" = false ];then
     find FASTA -name "*.phylomera.*fasta" > raw_phylomera_files.txt
     if [ ! -s raw_phylomera_files.txt ];then
 	log "[ERROR] - Something went wrong during alignment cleaning, no phylomera files found"
+        rm raw_phylomera_files.txt
 	exit 1
     fi
     if [[ "$(egrep -o -f marker_names.txt raw_phylomera_files.txt |sort -u|wc -l)" -ne "$(cat marker_names.txt|wc -l)" ]]; then
