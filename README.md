@@ -116,6 +116,7 @@ Then, download the NCBI table of your active selection:
   <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="400"/>
 </p>
 And give it as an argument to the script:
+
 ```
 ./download_genomes_ncbi.sh [path_to_ncbi_table]
 ```
