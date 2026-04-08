@@ -20,8 +20,23 @@ From: ubuntu:22.04
     If you want to build the singularity image manually using the definition file, run:
         singularity build --fakeroot GABBI_v1.0.0.sif GABBI_v1.0.0.def
 
-    If you are using the GABBI pipeline, please cite:
-        ...
+    If you are using the GABBI pipeline, please cite the GABBI publication:
+	- Zelvelder et al. 202X GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... (https://doi.org/xxx)
+
+    And tools used by the GABBI pipeline:
+	- AMAS: Borowiec ML. 2016 AMAS: a fast tool for alignment manipulation and computing of summary statistics. PeerJ 4, e1660. (https://doi.org/10.7717/peerj.1660)
+	- BLAST+ suite: Camacho C, Coulouris G, Avagyan V, Ma N, Papadopoulos J, Bealer K, Madden TL. 2009 BLAST+: architecture and applications. BMC Bioinformatics 10, 421. (https://doi.org/10.1186/1471-2105-10-421)
+	- Cactus: Armstrong J et al. 2020 Progressive Cactus is a multiple-genome aligner for the thousand-genome era. Nature 587, 246–251. (https://doi.org/10.1038/s41586-020-2871-y)
+	- GNU Parallel: Tange O. 2011 GNU Parallel - The Command-Line Power Tool. login: The USENIX Magazine, 42-47.
+	- HmmCleaner: Di Franco A, Poujol R, Baurain D, Philippe H. 2019 Evaluating the usefulness of alignment filtering methods to reduce the impact of errors on evolutionary inferences. BMC Evol Biol 19, 21. (https://doi.org/10.1186/s12862-019-1350-2)
+	- IQTREE3: Wong T et al. 2025 IQ-TREE 3: Phylogenomic Inference Software using Complex Evolutionary Models. (https://doi.org/10.32942/X2P62N)
+	- MACSE v2: Ranwez V, Douzery EJP, Cambon C, Chantret N, Delsuc F. 2018 MACSE v2: Toolkit for the Alignment of Coding Sequences Accounting for Frameshifts and Stop Codons. Molecular Biology and Evolution 35, 2582–2584. (https://doi.org/10.1093/molbev/msy159)
+	- MafFilter: Dutheil JY, Gaillard S, Stukenbrock EH. 2014 MafFilter: a highly flexible and extensible multiple genome alignment files processor. BMC Genomics 15, 53. (https://doi.org/10.1186/1471-2164-15-53)
+	- MAFFT: Katoh K, Standley DM. 2013 MAFFT Multiple Sequence Alignment Software Version 7: Improvements in performance and usability. Molecular Biology and Evolution 30, 772–780. (https://doi.org/10.1093/molbev/mst010)
+	- OMM_MACSE pipeline: Scornavacca C, Belkhir K, Lopez J, Dernat R, Delsuc F, Douzery EJP, Ranwez V. 2019 OrthoMaM v10: Scaling-Up Orthologous Coding Sequence and Exon Alignments with More than One Hundred Mammalian Genomes. Molecular Biology and Evolution 36, 861–862. (https://doi.org/10.1093/molbev/msz015)
+	- PHAST: Hubisz MJ, Pollard KS, Siepel A. 2011 PHAST and RPHAST: phylogenetic analysis with space/time models. Briefings in Bioinformatics 12, 41–51. (https://doi.org/10.1093/bib/bbq072)
+	- PHYLUCE: Faircloth BC. 2016 PHYLUCE is a software package for the analysis of conserved genomic loci. Bioinformatics 32, 786–788. (https://doi.org/10.1093/bioinformatics/btv646)
+	- SeqKit: Shen W, Le S, Li Y, Hu F. 2016 SeqKit: A Cross-Platform and Ultrafast Toolkit for FASTA/Q File Manipulation. PLoS ONE 11, e0163962. (https://doi.org/10.1371/journal.pone.0163962)
       
 %environment
     export LC_ALL=C.UTF-8
@@ -173,7 +188,7 @@ EOF
     python3 -m pip install -U .
     python3 -m pip install -U -r ./toil-requirement.txt
     
-    # -- PHAST 1.6 (phastCons, phyloFit) ----------------------------------------
+    # -- PHAST  (phastCons, phyloFit) -------------------------------------------
     mkdir /tmp/phast
     cd /tmp/phast
     wget https://github.com/CshlSiepelLab/phast/archive/refs/tags/v1.9.7.tar.gz
