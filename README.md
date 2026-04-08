@@ -160,25 +160,33 @@ However, if you have no clue on how your phylogenetic tree should look like, you
 ## Running the pipeline
 Once you have prepared your input data, you can run the GABBI pipeline. Here are a few useful command-lines you can run based on the ```example_data``` provided:
 
+Run the pipeline with minimal options and default arguments, printing logs to STDOUT:
 ```
-# Run the pipeline with minimal options and default arguments, printing logs to STDOUT:
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
+```
 
-# Personnalize basic pipeline outputs and logs:
+Personnalize basic pipeline outputs and logs:
+```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log
+```
 
-# Only run Cactus whole-genome alignment and increas max disk space and debug option:
+Only run Cactus whole-genome alignment and increas max disk space and debug option:
+```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --stop-before 02_conserved_loci --cactus-maxDisk 300G --debug \
     --prefix GABBI_Curculioninae_v0 --out-dir TEST_cactus > TEST_cactus.log 2&>1
+```
 
-# Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
+Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
+```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 80 \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
+```
 
-# Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
+Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
+```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 70 --restart 5.5_final_phyluce_probes \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
