@@ -86,12 +86,17 @@ The GABBI pipeline can be segmented into 6 phases:
   5) Testing the temporary probe set with _in silico_ target capture on additional genomes using [PHYLUCE](https://phyluce.readthedocs.io/en/latest/purpose.html) (Faircloth 2016)
   6) Extracting the final set of SHR (or targeted loci) enriched with ancestral sequences
 
+<p align="left">
+  <img src="/image/GABBI_pipeline.png" alt="GABBI_pipeline"/>
+</p>
+
 The goal of this pipeline is to allow anyone wishing to make a set of specific target capture baits as straightforward as possible, while still being versatile to user specifics. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (though high quality, scaffold-level genomes might work fine for our purposes), and an additionnal set of **whole-genome assemblies**. Each step of the pipeline is checkpointed to save time and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset specifics (see [detailed options](#detailed-options)).
 
 > **Note:** When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline
-> took roughly 13 hours and 30 minutes to run in total. As it is strongly paralellized, we strongly recommend giving as
-> much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets.
+> took roughly 13 hours and 30 minutes to run in total and produced 20G of data. As it is strongly paralellized, we strongly
+> recommend giving as much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets.
 
+---
 # How to use the GABBI pipeline
 Once you have fetched the GABBI singularity image and succesfully ran the help command, GABBI is ready to run. To help you prepare input data and reading GABBI output, this section will guide you through each option in greater details using a small examplar dataset available in ```example_data```. This examplar dataset contains 4 chromosome-level genomes and 7 additional genomes of a small sample of weevils that belong to the Curculioninae subfamily (sensu 'CCCMS').
 
@@ -113,7 +118,7 @@ conda install -c conda-forge ncbi-datasets-cli
 ```
 Then, download the NCBI table of your active selection:
 <p align="center">
-  <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="400"/>
+  <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="600"/>
 </p>
 And give it as an argument to the script:
 
@@ -129,7 +134,9 @@ High quality, chromosome-level genomes are strongly recommended for cactus whole
 ```
 +--- chr_level_genomes/
 |  +--- Ceutorhynchus_assimilis/
+|  |  +--- GCA_917834065.1_PGI_CEUTPL_v4_genomic.fna
 |  +--- Ips_nitidus/
+|  |  +--- ...
 |  +--- Orchestes_rusci/
 |  +--- Polydrusus_cervinus/
 |
@@ -148,7 +155,7 @@ For clarity, and because I avoided any taxonomic redundancy at the species level
 for i in chr_level_genomes/* additional_genomes/*; do mv $i ${i%_*} ;done
 ```
 
-> **Note:** Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#).
+> **Note:** Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#). Simply make sure that they have the ```.fasta``` or ```.fna``` file extension.
 
 ### Getting a guide tree
 The whole-genome alignment step requires a guide tree to run. This phylogenetic tree must be provided as a **NEWICK** file with **matching taxon names** with the chromosome level genomes provided in the ```chr_level_genomes/``` folder. You can check the ```chr_level_genomes.nw``` format for reference.
@@ -196,8 +203,41 @@ singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes a
 Each step is checkpointed if it succesfully ran, so running the same command again will resume the pipeline where it stopped.
 If one step fails, the pipeline stops and will restart where it failed running the same command. Note that sometimes, issues are not correctly caught by the checkpointing system, so you might have to restart from an anterior step once you found the issue. Please report issues in the corresponding github sections to help me improve the pipeline!
 
-# Reading GABBI outputs
+## Reading GABBI outputs
 
+GABBI outputs and temporary files are all stored in the ```--output-dir``` provided or in ```GABBI_output/``` by default. They are organized so that each phase of the pipeline has its own subdirectory named after the phase name (e.g. 01_cactus_alignment, 02_conserved_loci etc.).
+
+Files and statistics of interest are given through the pipeline. They can be accessed in your log file using:
+
+```
+grep "GABBI" [log_file]
+```
+
+Nevertheless, here is a more detailed list of GABBI outputs and their significance (with the default prefix ```cactus_alignment```).
+- ```01_cactus_alignment/```
+  - ```cactus_input.txt```: Input file created using ```--chr-level-genomes``` content and the provided ```--guide-tree```
+  - ```cactus_alignment.hal```: Cactus whole-genome alignment
+- ```02_conserved_loci/```
+  - ```maf/*.maf.gz```: Whole-genome alignment converted into a "Multiple Alignment Format" (MAF), using each genome as a base genome.
+  - ```maffilter/*/```: Each genome has its own subdirectory containing filtered blocks of alignments of each of their chromosome/scaffolds (based on ```--block-size``` and ```--block-length``` options).
+  - ```conserved_loci/*.merge.fasta```: Conserved loci found by phastcons in each genome
+- ```03_cross_blast/```
+  - ```shr_clustering/cactus_alignment.shr_from_blastn.mintax3.dupes0.list```: Filtered results of the cross-BLASTn between phastcons conserved loci (based on ```--temp-tax-threshold``` and ```--temp-allow-dupes``` options).
+- ```04_shr_extraction/```
+  - ```shr/```: List of temporary SHR sequences obtained from filtered cross-BLAST results
+  - ```cactus_alignment.temp.loci.fasta```: 
+  - ```cactus_alignment.temp.anc.loci.fasta```:
+- ```05_final_phyluce_probes```
+  - ```temp_probes/cactus_alignment.temp.anc.probes.fasta```: Temporary probes generated from ```cactus_alignment.temp.anc.loci.fasta```.
+  - ```mapping/```: Results from LASTZ mapping of temporary probes on each chromosome-level and additional genomes.
+  - ```final_phyluce_probes/cactus_alignment.70.probe_list-DUPE-SCREENED.fasta```: Final probe set (without ancestral sequences) generated with PHYLUCE.
+  - ```consensus_loci/cactus_alignment.70.phyluce.loci.cons.fasta```:
+  - ```multifasta_table/cactus_alignment.table```: Table listing the number of loci conserved by X% of taxa (from 0 to 100%)
+
+> **Note:** Folders are followed by a "/". The "*" sign means that multiple files have the same pattern.
+
+
+---
 # Detailed options
 ```
     GABBI — Genome Alignment-Based Bait Inference pipeline
