@@ -1,15 +1,15 @@
 # GABBI pipeline version 1.0.0
-a **G**enome **A**lignment-**B**ased **B**ait **I**nference pipeline
+> _Genome Alignment-Based Bait Inference_
 
 
 **GABBI** is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**.
 GABBI-derived probe sets are expected to target more variable loci than usual probe design methods that rely on a base genome to map reads, providing more sensitive and phylogenetically resolutive data.
 
-This pipeline was designed in this publication to produce the first set of weevil-specific probes. If you use GABBI, pleasae cite:
+This pipeline was designed in this publication to produce the first set of weevil-specific probes. If you use GABBI, please cite:
 > Zelvelder B, ... GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... doi:X
 
 # Requirements
-To run this pipeline, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
+To run this pipeline, all you need is the [singularity image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) and a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
 
 # Table of contents
 1. [Installation](#installation)
@@ -29,7 +29,7 @@ To run this pipeline, all you need is a linux environment with ```apptainer``` v
 The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-called _singularity image_) to avoid installation issues and incompatibilities. Thus, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.0.0 installed. This software can be installed following this tutorial: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, I will always refer to ```singularity``` rather than ```apptainer``` but all commands that start with ```singularity ...``` can be spelled ```apptainer ...```. 
 
 ## Downloading the GABBI singularity image
-Because a singularity image is too heavy to be stored and pulled from github, you will not find the ```.sif``` file in this repository. However, the GABBI image is stored on the **Sylabs** remote repository and can simply be pulled with this command:
+Because a singularity image is too heavy to be stored and pulled from github, you will not find the ```.sif``` file in this repository. However, the [GABBI image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) is stored on the **Sylabs** remote repository and can simply be pulled with this command:
 ```
 singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.0.0
 ```
@@ -76,35 +76,33 @@ set +eou pipefail
 ```
 ---
 # Pipeline overview
-The GABBI pipeline is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**. As opposed to other commonly used methods of probe design, GABBI doesn't rely on a **base taxon**. The final set of targeted loci tend to be more variable than ultraconserved elements (UCE) and are referred to as shared homologous regions (SHR). Further details on the context and signficance of this new probe design method can be accessed through the [publication](#citation) that features the GABBI pipeline.
+The GABBI pipeline is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**. As opposed to other commonly used methods of probe design, GABBI doesn't rely on a **base taxon**. The final set of targeted loci tend to be more variable than ultraconserved elements (UCE) and are referred to as shared homologous regions (SHR). Further details on the context and signficance of this new probe design method can be accessed through the publication that features the GABBI pipeline ([Zelvelder et al. 202X](#citation)).
 
 The GABBI pipeline can be segmented into 6 phases:
-  1) Aligning chromosome-level genomes using [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus?tab=readme-ov-file) (Armstrong et al. 2020)
-  2) Identifying conserved regions using [PhastCons](http://compgen.cshl.edu/phast/phastCons-tutorial.php) (Hubisz et al. 2011)
-  3) Extracting shared conserved regions between chromosome-level genomes using BLAST (NCBI; Altschul 2017)
-  4) Making a temporary probe set out of these shared conserved regions enriched with ancestral sequences using IQ-TREE 3 (Wong et al. 2025)
-  5) Testing the temporary probe set with _in silico_ target capture on additional genomes using [PHYLUCE](https://phyluce.readthedocs.io/en/latest/purpose.html) (Faircloth 2016)
-  6) Extracting the final set of SHR (or targeted loci) enriched with ancestral sequences
+  - **1)** Aligning chromosome-level genomes using [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus) ([Armstrong et al. 2020](#references))
+  - **2)** Identifying conserved regions using [MAFFilter](https://github.com/jydu/maffilter) and [PhastCons](http://compgen.cshl.edu/phast/phastCons-tutorial.php) ([Hubisz et al. 2011; Dutheil et al. 2014](#references))
+  - **3)** Extracting shared conserved regions between chromosome-level genomes using BLAST (NCBI; [Altschul 2017](#references))
+  - **4)** Making a temporary probe set out of these shared conserved regions enriched with ancestral sequences using IQ-TREE 3 ([Wong et al. 2025](#references))
+  - **5)** Testing the temporary probe set with _in silico_ target capture on additional genomes using [PHYLUCE](https://phyluce.readthedocs.io/en/latest/purpose.html) ([Faircloth 2016](#references))
+  - **6)** Extracting the final set of SHR (or targeted loci) enriched with ancestral sequences
 
 <p align="left">
   <img src="/image/GABBI_pipeline.png" alt="GABBI_pipeline"/>
 </p>
 
-The goal of this pipeline is to allow anyone wishing to make a set of specific target capture baits as straightforward as possible, while still being versatile to user specifics. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (though high quality, scaffold-level genomes might work fine for our purposes), and an additionnal set of **whole-genome assemblies**. Each step of the pipeline is checkpointed to save time and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset specifics (see [detailed options](#detailed-options)).
+The goal of this pipeline is to allow anyone wishing to make a set of specific target capture baits as straightforward as possible, while still being versatile to user specifics. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (although high quality, scaffold-level genomes might work fine for our purpose), and an additionnal set of **whole-genome assemblies**. Each step of the pipeline is checkpointed to save time and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset specifics (see [detailed options](#detailed-options)).
 
-> **Note:** When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline
-> took roughly 13 hours and 30 minutes to run in total and produced 20G of data. As it is strongly paralellized, we strongly
-> recommend giving as much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets.
+> **Note:** When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline took roughly 13 hours and 30 minutes to run in total and produced 20 Gb of data. As it is strongly paralellized, we strongly recommend giving as much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets.
 
 ---
 # How to use the GABBI pipeline
-Once you have fetched the GABBI singularity image and succesfully ran the help command, GABBI is ready to run. To help you prepare input data and reading GABBI output, this section will guide you through each option in greater details using a small examplar dataset available in ```example_data```. This examplar dataset contains 4 chromosome-level genomes and 7 additional genomes of a small sample of weevils that belong to the Curculioninae subfamily (sensu 'CCCMS').
+Once you have fetched the GABBI singularity image and succesfully ran the help command, GABBI is ready to run. To help you prepare input data and reading GABBI output, this section will guide you through each option in greater details using a small examplar dataset available in ```example_data```. This examplar dataset contains 4 chromosome-level genomes and 7 additional genomes of a small sample of weevils that belong to the Curculioninae subfamily (sensu 'CCCMS'; [Haran et al. 2023](#references)).
 
 ## Preparing input data
 GABBI only requires three arguments to run: ```--chr-genomes```, ```--guide-tree```, and ```--add-genomes```. Thus, we need to [download](#downloading-ncbi-genomes) and [organize](#organizing-directory-architecture) the genomes that will be used for the probe design and provide a phylogenetic tree of the chromosome-level genomes to [guide the genomic alignment](#getting-a-guide-tree). But first, there are a few things to note on how to [choose those genomes](#choosing-representative-taxa).
 
 ### Choosing representative taxa
-Ultimately, the goal of a probe set is to efficiently hybridize with the fragmented DNA of any taxon belonging to the targeted taxonomic group. Thus, we want as much as possible that our probe sequences map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa (typically, only 7 taxa represent the 400k species of the Coleoptera UCE probe set). So here are a few things you should have in mind:
+Ultimately, the goal of a probe set is to efficiently hybridize with the fragmented DNA of any taxon belonging to the targeted taxonomic group. Thus, we want as much as possible that our probe sequences map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa. Historically, very few genomes were used to represent large taxonomic scales (e.g. only 6 taxa represent the 400k species of the Coleoptera UCE probe set; [Faircloth 2017](#references)), but thanks to the growing number of whole-genomes available, we can greatly improve this number. Nonetheless, here are a few things you should have in mind:
 - Avoid the taxonomic redundancy in representative genomes. Some genus/tribe are often overrepresented among available genomes whereas entire families can be missing. Reducing the taxonomic redundancy in the genome set should prevent selected markers to appear more shared than expected.
 - Be aware that providing too many genomes can rapidly become computationnaly intensive. Further research is needed to quantify an optimum, but providing one or two taxa per taxonomic tribe should be enough to cover their genetic variation.
 - Genomic alignment should be conducted on chromosome-level (or very high quality) genomes and validated with a separate set of additional genomes. But testing the final probe set with a third set of genomes/raw data can also be useful!
@@ -155,45 +153,45 @@ For clarity, and because I avoided any taxonomic redundancy at the species level
 for i in chr_level_genomes/* additional_genomes/*; do mv $i ${i%_*} ;done
 ```
 
-> **Note:** Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#). Simply make sure that they have the ```.fasta``` or ```.fna``` file extension.
+> **Note:** Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#detailed-options). Simply make sure that they have the ```.fasta``` or ```.fna``` file extension.
 
 ### Getting a guide tree
 The whole-genome alignment step requires a guide tree to run. This phylogenetic tree must be provided as a **NEWICK** file with **matching taxon names** with the chromosome level genomes provided in the ```chr_level_genomes/``` folder. You can check the ```chr_level_genomes.nw``` format for reference.
 
 Because a weevil phylogeny was already available for the example dataset, I simply pruned and renamed an existing tree to only contain the taxa I provided in my dataset using [FigTree](https://github.com/rambaut/figtree).
 
-However, if you have no clue on how your phylogenetic tree should look like, you may try to run the [ROADIES](https://github.com/TurakhiaLab/ROADIES) pipeline to compute a fast phylogenetic tree of your dataset.
-> **Note:** We may add this feature in the GABBI pipeilne in the future.
+However, if you have no clue on how your phylogenetic tree should look like, you may try to run the [ROADIES](https://github.com/TurakhiaLab/ROADIES) pipeline to compute a fast phylogenetic tree of your dataset ([Gupta et al. 2025](#references)).
+> **Note:** this feature might be added in the GABBI pipeilne in the future.
 
 ## Running the pipeline
 Once you have prepared your input data, you can run the GABBI pipeline. Here are a few useful command-lines you can run based on the ```example_data``` provided:
 
-Run the pipeline with minimal options and default arguments, printing logs to STDOUT:
+  - Run the pipeline with minimal options and default arguments, printing logs to STDOUT:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
 ```
 
-Personnalize basic pipeline outputs and logs:
+  - Personnalize basic pipeline outputs and logs:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log
 ```
 
-Only run Cactus whole-genome alignment and increas max disk space and debug option:
+  - Only run Cactus whole-genome alignment and increas max disk space and debug option:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --stop-before 02_conserved_loci --cactus-maxDisk 300G --debug \
     --prefix GABBI_Curculioninae_v0 --out-dir TEST_cactus > TEST_cactus.log 2&>1
 ```
 
-Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
+  - Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 80 \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
 ```
 
-Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
+  - Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 70 --restart 5.5_final_phyluce_probes \
@@ -213,28 +211,34 @@ Files and statistics of interest are given through the pipeline. They can be acc
 grep "GABBI" [log_file]
 ```
 
-Nevertheless, here is a more detailed list of GABBI outputs and their significance (with the default prefix ```cactus_alignment```).
+Here is a more detailed list of some GABBI outputs (generated on the example dataset with the default ```cactus_alignment``` prefix).
 - ```01_cactus_alignment/```
-  - ```cactus_input.txt```: Input file created using ```--chr-level-genomes``` content and the provided ```--guide-tree```
-  - ```cactus_alignment.hal```: Cactus whole-genome alignment
+  - ```cactus_input.txt```: Input file created using ```--chr-level-genomes``` content and the provided ```--guide-tree```.
+  - ```cactus_alignment.hal```: Cactus whole-genome alignment.
 - ```02_conserved_loci/```
   - ```maf/*.maf.gz```: Whole-genome alignment converted into a "Multiple Alignment Format" (MAF), using each genome as a base genome.
   - ```maffilter/*/```: Each genome has its own subdirectory containing filtered blocks of alignments of each of their chromosome/scaffolds (based on ```--block-size``` and ```--block-length``` options).
-  - ```conserved_loci/*.merge.fasta```: Conserved loci found by phastcons in each genome
+  - ```conserved_loci/*.merge.fasta```: Conserved loci found by phastcons in each genome.
 - ```03_cross_blast/```
   - ```shr_clustering/cactus_alignment.shr_from_blastn.mintax3.dupes0.list```: Filtered results of the cross-BLASTn between phastcons conserved loci (based on ```--temp-tax-threshold``` and ```--temp-allow-dupes``` options).
 - ```04_shr_extraction/```
-  - ```shr/```: List of temporary SHR sequences obtained from filtered cross-BLAST results
-  - ```cactus_alignment.temp.loci.fasta```: 
-  - ```cactus_alignment.temp.anc.loci.fasta```:
+  - ```shr/```: List of temporary SHR sequences obtained from filtered cross-BLAST results.
+  - ```cactus_alignment.temp.loci.fasta```: FASTA file containing all temporary targeted loci.
+  - ```cactus_alignment.temp.anc.loci.fasta```: FASTA file containing all temporary targeted loci and their ancestral sequences.
 - ```05_final_phyluce_probes```
-  - ```temp_probes/cactus_alignment.temp.anc.probes.fasta```: Temporary probes generated from ```cactus_alignment.temp.anc.loci.fasta```.
+  - ```temp_probes/cactus_alignment.temp.anc.probes.fasta```: Temporary probes generated from temporary targeted loci.
   - ```mapping/```: Results from LASTZ mapping of temporary probes on each chromosome-level and additional genomes.
   - ```final_phyluce_probes/cactus_alignment.70.probe_list-DUPE-SCREENED.fasta```: Final probe set (without ancestral sequences) generated with PHYLUCE.
-  - ```consensus_loci/cactus_alignment.70.phyluce.loci.cons.fasta```:
-  - ```multifasta_table/cactus_alignment.table```: Table listing the number of loci conserved by X% of taxa (from 0 to 100%)
+  - ```consensus_loci/cactus_alignment.70.phyluce.loci.cons.fasta```: Consensus sequences of the PHYLUCE final probe set.
+  - ```multifasta_table/cactus_alignment.table```: Table listing the number of loci conserved by X% of taxa (from 0 to 100%; useful to modify ```--shr-threshold``` option).
+- ```06_final_targeted_loci```
+  - ```final_alignments/```: Phylomera alignments of the final set of targeted loci. Can be used to easily build a species tree of all genomes in the dataset (see [future directions](#future-directions)).
+  - ```cactus_alignment.final.anc.loci.fasta```: Final set of targeted SHR and ancestral sequences.
+  - ```cactus_alignment.final.anc.loci.cons.fasta```: Consensus sequences of the final set of targeted loci (to be used as references during alignments)
 
 > **Note:** Folders are followed by a "/". The "*" sign means that multiple files have the same pattern.
+
+# Future directions
 
 
 ---
@@ -310,4 +314,12 @@ If you used the **GABBI** pipeline, please cite:
 # References
 The **GABBI** pipeline is based on several other tools. Please consider citing these articles as well:
 
->
+> **MAFFT:** Katoh K, Standley DM. 2013 MAFFT Multiple Sequence Alignment Software Version 7: Improvements in performance and usability. Molecular Biology and Evolution 30, 772–780. [doi:10.1093/molbev/mst010]
+> **The OMM_MACSE pipeline:** Scornavacca C, Belkhir K, Lopez J, Dernat R, Delsuc F, Douzery EJP, Ranwez V. 2019 OrthoMaM v10: Scaling-Up Orthologous Coding Sequence and Exon Alignments with More than One Hundred Mammalian Genomes. Molecular Biology and Evolution 36, 861–862. [doi:10.1093/molbev/msz015]
+> **MACSE v2:** Ranwez V, Douzery EJP, Cambon C, Chantret N, Delsuc F. 2018 MACSE v2: Toolkit for the Alignment of Coding Sequences Accounting for Frameshifts and Stop Codons. Molecular Biology and Evolution 35, 2582–2584. [doi:10.1093/molbev/msy159]
+> **GNU Parallel:** Tange O. 2011 GNU Parallel - The Command-Line Power Tool. login: The USENIX Magazine, 42-47.
+> **HmmCleaner:** Di Franco A, Poujol R, Baurain D, Philippe H. 2019 Evaluating the usefulness of alignment filtering methods to reduce the impact of errors on evolutionary inferences. BMC Evol Biol 19, 21. [doi:10.1186/s12862-019-1350-2]
+> **AMAS:** Borowiec ML. 2016 AMAS: a fast tool for alignment manipulation and computing of summary statistics. PeerJ 4, e1660. [doi:10.7717/peerj.1660]
+> **IQTREE3:** Wong T et al. 2025 IQ-TREE 3: Phylogenomic Inference Software using Complex Evolutionary Models. [doi:10.32942/X2P62N]
+> **SeqKit:** Shen W, Le S, Li Y, Hu F. 2016 SeqKit: A Cross-Platform and Ultrafast Toolkit for FASTA/Q File Manipulation. PLoS ONE 11, e0163962. [doi:10.1371/journal.pone.0163962]
+
