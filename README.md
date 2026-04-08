@@ -3,7 +3,7 @@ a **G**enome **A**lignment-**B**ased **B**ait **I**nference pipeline
 
 
 **GABBI** is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**.
-GABBI-derived probe sets are expected to be larger and target more variable loci than usual probe design methods that rely on a base genome to map reads, providing more sensitive and phylogenetically resolutive data.
+GABBI-derived probe sets are expected to target more variable loci than usual probe design methods that rely on a base genome to map reads, providing more sensitive and phylogenetically resolutive data.
 
 This pipeline was designed in this publication to produce the first set of weevil-specific probes. If you use GABBI, pleasae cite:
 > Zelvelder B, ... GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... doi:X
@@ -17,7 +17,9 @@ To run this pipeline, all you need is a linux environment with ```apptainer``` v
     - [Building from source (in a singularity image or a sandbox)](#building-from-source)
 2. [Pipeline overview](#pipeline-overview)
 3. [How to use the GABBI pipeline](#how-to-use-the-gabbi-pipeline)
-    - [Preparing input data](#preparing-input-data) 
+    - [Preparing input data](#preparing-input-data)
+    - [Running the pipeline](#running-the-pipeline)
+    - [Reading GABBI outputs](#reading-gabbi-outputs)
 4. [Detailed options](#detailed-options)
 5. [Citation](#citation)
 6. [References](#references)
@@ -91,45 +93,101 @@ The goal of this pipeline is to allow anyone wishing to make a set of specific t
 > much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets.
 
 # How to use the GABBI pipeline
-Once you have fetched the GABBI singularity image and succesfully ran the help command, GABBI is ready to go. To help you prepare input data and reading GABBI output, this section will guide you through each option in greater details using a small examplar dataset available in ```example_data```. This examplar dataset contains 4 chromosome-level genomes and 7 additional genomes of a small sample of weevils that belong to the Curculioninae subfamily (sensu 'CCCMS').
+Once you have fetched the GABBI singularity image and succesfully ran the help command, GABBI is ready to run. To help you prepare input data and reading GABBI output, this section will guide you through each option in greater details using a small examplar dataset available in ```example_data```. This examplar dataset contains 4 chromosome-level genomes and 7 additional genomes of a small sample of weevils that belong to the Curculioninae subfamily (sensu 'CCCMS').
 
 ## Preparing input data
-GABBI only requires three arguments to run: ```--chr-genomes```, ```--guide-tree```, and ```--add-genomes```. Thus, we need to [download](#downloading-ncbi-genomes) and [organize](#organizing-directory-architecture) the genomes that will be used for the probe design and provide a phylogenetic tree of the chromosome-level genomes to [guide genomic alignment](#getting-a-guide-tree). But first, there are a few things to note on how to [choose those genomes](#choosing-representative-taxa).
+GABBI only requires three arguments to run: ```--chr-genomes```, ```--guide-tree```, and ```--add-genomes```. Thus, we need to [download](#downloading-ncbi-genomes) and [organize](#organizing-directory-architecture) the genomes that will be used for the probe design and provide a phylogenetic tree of the chromosome-level genomes to [guide the genomic alignment](#getting-a-guide-tree). But first, there are a few things to note on how to [choose those genomes](#choosing-representative-taxa).
 
 ### Choosing representative taxa
-Ultimately, the goal of a probe set is to efficiently hybridize with the fragmented DNA of any taxon from our targeted taxonomic scale. Thus, we want as much as possible that our probe sequences map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa (typically, only 7 taxa represent the 400k species of the Coleoptera UCE probe set). So here are a few things you should have in mind:
-- Verify the taxonomic redundancy in available genomes, as there is often a great bias with some genus/tribe overrepresented while entire families can be completely missing. The taxonomic redundancy will make selected markers appear more shared than expected.
-- Having too much genomes in the dataset could rapidly become computationnaly intensive and costly to synthesize enormous amounts of probes, but further research is needed to quantify this optimum.
+Ultimately, the goal of a probe set is to efficiently hybridize with the fragmented DNA of any taxon belonging to the targeted taxonomic group. Thus, we want as much as possible that our probe sequences map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa (typically, only 7 taxa represent the 400k species of the Coleoptera UCE probe set). So here are a few things you should have in mind:
+- Avoid the taxonomic redundancy in representative genomes. Some genus/tribe are often overrepresented among available genomes whereas entire families can be missing. Reducing the taxonomic redundancy in the genome set should prevent selected markers to appear more shared than expected.
+- Be aware that providing too many genomes can rapidly become computationnaly intensive. Further research is needed to quantify an optimum, but providing one or two taxa per taxonomic tribe should be enough to cover their genetic variation.
 - Genomic alignment should be conducted on chromosome-level (or very high quality) genomes and validated with a separate set of additional genomes. But testing the final probe set with a third set of genomes/raw data can also be useful!
 
 With that in mind, you can check available genomes at [NCBI](https://www.ncbi.nlm.nih.gov/datasets/genome/) and play with filters and column selection to fine-tune your selection.
 
 ### Downloading NCBI genomes
-Once you have chosen the genomes you want to represent in your probe design, you can either download them by hand or use the ```download_genomes_ncbi.sh``` script to download them. In this case, simply download a table of your active selection:
+Once you have chosen the genomes you want to represent in your probe design, you can either download them manually or use the ```download_genomes_ncbi.sh``` script to download them. In this case, you must install the ```ncbi_datasets``` command-line program [here](https://www.ncbi.nlm.nih.gov/datasets/docs/v2/command-line-tools/download-and-install/). If you have conda installed, simply run:
+```
+conda install -c conda-forge ncbi-datasets-cli
+```
+Then, download the NCBI table of your active selection:
 <p align="center">
   <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="400"/>
 </p>
-And give it as argument to the script:
+And give it as an argument to the script:
 ```
 ./download_genomes_ncbi.sh [path_to_ncbi_table]
 ```
-High quality, chromosome-level genomes are strongly recommended for cactus whole-genome alignment, so they will be stored in a seperate folder as other genomes. As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder named after the taxon name you want to keep during the analysis. If you have multiple
-
-
-Genomes https://www.ncbi.nlm.nih.gov/datasets/docs/v2/command-line-tools/download-and-install/
 
 ### Organizing directory architecture
+As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder named after the taxon name you want to keep during the analysis. The ```download_genomes_ncbi.sh``` script should have organized your genome selection in this way, but you can obvisouly add your own genomic alignments by following the same logic. 
+
+High quality, chromosome-level genomes are strongly recommended for cactus whole-genome alignments, so they need to be stored in a seperate folder as other genomes to be parsed through the ```--chr-level-genomes``` option. Here is how your directory architecture should look like:
+
+```
++--- chr_level_genomes/
+|  +--- Ceutorhynchus_assimilis/
+|  +--- Ips_nitidus/
+|  +--- Orchestes_rusci/
+|  +--- Polydrusus_cervinus/
+|
++--- additional_genomes/
+|  +--- Anthonomus_rubi/
+|  +--- Kuschelorhynchus_macadamiae/
+|  +--- Magdalis_cerasi/
+|  +--- Oxystoma_pomonae/
+|  +--- Pseudeuparius_sepicola/
+|  +--- Sitona_lineatus/
+|  +--- Xyleborus_glabratus/
+```
+
+For clarity, and because I avoided any taxonomic redundancy at the species level in my example dataset, I got rid of the GenBank ID suffix provided by the ```download_genomes_ncbi.sh``` script using this command:
+```
+for i in chr_level_genomes/* additional_genomes/*; do mv $i ${i%_*} ;done
+```
+
+> **Note:** Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#).
 
 ### Getting a guide tree
+The whole-genome alignment step requires a guide tree to run. This phylogenetic tree must be provided as a **NEWICK** file with **matching taxon names** with the chromosome level genomes provided in the ```chr_level_genomes/``` folder. You can check the ```chr_level_genomes.nw``` format for reference.
 
-> **Notes:**
-> - You can add your own genomic assemblies by following the same directory architecture, just make sure that your assembly ends with ```.fasta``` or ```.fna```
-> - Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#).
+Because a weevil phylogeny was already available for the example dataset, I simply pruned and renamed an existing tree to only contain the taxa I provided in my dataset using [FigTree](https://github.com/rambaut/figtree).
 
-## Setting up the pipeline
+However, if you have no clue on how your phylogenetic tree should look like, you may try to run the [ROADIES](https://github.com/TurakhiaLab/ROADIES) pipeline to compute a fast phylogenetic tree of your dataset.
+> **Note:** We may add this feature in the GABBI pipeilne in the future.
 
+## Running the pipeline
+Once you have prepared your input data, you can run the GABBI pipeline. Here are a few useful command-lines you can run based on the ```example_data``` provided:
 
-# Tips and perspectives
+```
+# Run the pipeline with minimal options and default arguments, printing logs to STDOUT:
+singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
+
+# Personnalize basic pipeline outputs and logs:
+singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+    --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log
+
+# Only run Cactus whole-genome alignment and increas max disk space and debug option:
+singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+    --stop-before 02_conserved_loci --cactus-maxDisk 300G --debug \
+    --prefix GABBI_Curculioninae_v0 --out-dir TEST_cactus > TEST_cactus.log 2&>1
+
+# Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
+singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+    --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 80 \
+    --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
+
+# Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
+singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+    --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 70 --restart 5.5_final_phyluce_probes \
+    --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
+```
+
+Each step is checkpointed if it succesfully ran, so running the same command again will resume the pipeline where it stopped.
+If one step fails, the pipeline stops and will restart where it failed running the same command. Note that sometimes, issues are not correctly caught by the checkpointing system, so you might have to restart from an anterior step once you found the issue. Please report issues in the corresponding github sections to help me improve the pipeline!
+
+# Reading GABBI outputs
 
 # Detailed options
 ```
@@ -172,7 +230,7 @@ Genomes https://www.ncbi.nlm.nih.gov/datasets/docs/v2/command-line-tools/downloa
       Genome alignment options
       ------------------------
       --cactus-maxDisk  INT   Increase the maximum amount of disk used by cactus, with K, M or G suffix
-                              to specify Kilo, Mega or Gigabytes. [300G]
+                              to specify Kilo, Mega or Gigabytes. [50G]
       --cactus-maxCores INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
       --block-size      INT   Minimum number of taxa (including ancestral genomes) required to retain
                               an alignment block [70 % of extent and ancestral genomes]
@@ -198,10 +256,9 @@ Genomes https://www.ncbi.nlm.nih.gov/datasets/docs/v2/command-line-tools/downloa
 # Citation
 If you used the **GABBI** pipeline, please cite:
 
-- 
+> Zelvelder B, ... GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... doi:X
 
 # References
-If you used the **GABBI** pipeline, please consider citing these articles as well.
+The **GABBI** pipeline is based on several other tools. Please consider citing these articles as well:
 
-- 
-- 
+>
