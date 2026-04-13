@@ -20,16 +20,16 @@ get_col_index() {
     echo "$header" | tr '\t' '\n' | grep -in "$1" | head -1 | cut -d: -f1
 }
 
-genbank_col=$(get_col_index "GenBank")
-species_col=$(get_col_index "Scientific name")
-level_col=$(get_col_index "Level")
+genbank_col=$(get_col_index "Assembly Accession")
+species_col=$(get_col_index "Organism Name")
+level_col=$(get_col_index "Assembly Level")
 
 # Validate that required columns were found
 if [ -z "$genbank_col" ] || [ -z "$species_col" ] || [ -z "$level_col" ]; then
     echo "Error: could not find required columns in header."
-    echo "  GenBank column : ${genbank_col:-NOT FOUND}"
-    echo "  Scientific name column      : ${species_col:-NOT FOUND}"
-    echo "  Level column     : ${level_col:-NOT FOUND}"
+    echo "  Assembly Accession column : ${genbank_col:-NOT FOUND}"
+    echo "  Organism Name column      : ${species_col:-NOT FOUND}"
+    echo "  Assembly Level column     : ${level_col:-NOT FOUND}"
     echo ""
     echo "Header detected:"
     echo "$header" | tr '\t' '\n' | nl
