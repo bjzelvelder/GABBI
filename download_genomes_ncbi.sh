@@ -72,7 +72,7 @@ tail -n +2 "$table"|sed -E "s/\t\t/\tNA\t/g" | while IFS=$'\t' read -ra fields; 
 
         datasets download genome accession "$genbank" --include genome
         sleep 5
-        unzip ncbi_dataset.zip
+        unzip -q ncbi_dataset.zip
         sleep 5
         mv ncbi_dataset/*/*/*.fna .
         rm -rf ncbi* md5sum.txt README.md
