@@ -44,7 +44,7 @@ mkdir -p "$CHR_DIR" "$ADD_DIR"
 WORKDIR=$(pwd)
 
 # Process data lines (skip header)
-tail -n +2 "$table" | while IFS=$'\t' read -ra fields; do
+tail -n +2 "$table"|sed -E "s/\t\t/\tNA\t/g" | while IFS=$'\t' read -ra fields; do
 
     genbank="${fields[$((genbank_col - 1))]}"
     species_name="${fields[$((species_col - 1))]}"
