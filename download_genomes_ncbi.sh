@@ -7,31 +7,84 @@
 
 table=$1
 
-# Read the table
-cat $table| while IFS=$'\t' read -r genbank assembly species_name _ _ _ _ _ _ _ _ _; do
+if [ -z "$table" ] || [ ! -f "$table" ]; then
+    echo "Usage: $0 <ncbi_genome_table.tsv>"
+    exit 1
+fi
 
-    if [ "$genbank" = "Assembly Accession" ]; then
-        continue
+# Detect column indices from header
+header=$(head -n 1 "$table")
+
+get_col_index() {
+    # Returns 1-based column index matching the given string
+    echo "$header" | tr '\t' '\n' | grep -in "$1" | head -1 | cut -d: -f1
+}
+
+genbank_col=$(get_col_index "GenBank")
+species_col=$(get_col_index "Scientific name")
+level_col=$(get_col_index "Level")
+
+# Validate that required columns were found
+if [ -z "$genbank_col" ] || [ -z "$species_col" ] || [ -z "$level_col" ]; then
+    echo "Error: could not find required columns in header."
+    echo "  GenBank column : ${genbank_col:-NOT FOUND}"
+    echo "  Scientific name column      : ${species_col:-NOT FOUND}"
+    echo "  Level column     : ${level_col:-NOT FOUND}"
+    echo ""
+    echo "Header detected:"
+    echo "$header" | tr '\t' '\n' | nl
+    exit 1
+fi
+
+# Output subdirectories
+CHR_DIR="chr_level_genomes"
+ADD_DIR="additional_genomes"
+mkdir -p "$CHR_DIR" "$ADD_DIR"
+
+WORKDIR=$(pwd)
+
+# Process data lines (skip header)
+tail -n +2 "$table" | while IFS=$'\t' read -ra fields; do
+
+    genbank="${fields[$((genbank_col - 1))]}"
+    species_name="${fields[$((species_col - 1))]}"
+    level="${fields[$((level_col - 1))]}"
+
+    # Skip empty lines if any
+    [ -z "$genbank" ] && continue
+
+    # Reformat genome name (replace all spaces with underscores)
+    sp_GCA="${species_name// /_}_${genbank}"
+
+    if [ "$level" = "Chromosome" ]; then
+        subdir="$CHR_DIR"
+    else
+        subdir="$ADD_DIR"
     fi
 
-    # Reformat genome name
-    sp_GCA="${species_name/ /_}_$genbank"
+    dest="${WORKDIR}/${subdir}/${sp_GCA}"
 
-    echo "Downloading ${sp_GCA}"
-    if [ ! -d "${sp_GCA}" ];then
-        mkdir -p "$sp_GCA"
-        cd "$sp_GCA"
+    echo "Downloading ${sp_GCA} in ${subdir}/"
 
-        # Download and extract .fna
+    if [ ! -d "$dest" ]; then
+        mkdir -p "$dest"
+        cd "$dest"
+
         datasets download genome accession "$genbank" --include genome
         sleep 5
         unzip ncbi_dataset.zip
         sleep 5
         mv ncbi_dataset/*/*/*.fna .
         rm -rf ncbi* md5sum.txt README.md
-        cd ..
-    else 
-        echo "${sp_GCA} already exists"
+
+        cd "$WORKDIR"
+    else
+        echo "${subdir}/${sp_GCA} already exists, skipping."
     fi
+
 done
 
+echo ""
+echo "Done."
+echo "  Chromosome-level genomes : ${CHR_DIR}/"
+echo "  Other genomes            : ${ADD_DIR}/"

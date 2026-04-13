@@ -316,11 +316,11 @@ EOF
     python3 -m pip install -U amas
 
     # Make all tools executable
-    find /opt/gabbi \( -name "*.sh" -o -name "*.py" \) -exec chmod +x {} \;
-    chmod +x /opt/ucsc_tools/faToTwoBit
+    find /opt/gabbi \( -name "*.sh" -o -name "*.py" \) -exec chmod 755 {} \;
+    chmod 755 /opt/ucsc_tools/faToTwoBit
     chmod 755 /opt/omm_macse/OMM_MACSE/*.sh
     chmod -R 755 /opt/omm_macse/UTILS/LGS_Fasta/*.sh
-    chmod +x /opt/miniconda3/lib/python3.13/site-packages/amas/AMAS.py
+    chmod 755 /opt/miniconda3/lib/python3.13/site-packages/amas/AMAS.py
 
 %runscript
     #!/usr/bin/env bash
