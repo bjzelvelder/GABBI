@@ -2,7 +2,11 @@
 
 # Various functions used inside the gabbi pipeline
 
-debug() { [[ "${GABBI_DEBUG:-0}" -eq 1 ]] && echo "[GABBI][DEBUG] $*" >&2; }
+debug() {
+    if [[ "${GABBI_DEBUG:-0}" -eq 1 ]]; then
+        echo "[GABBI][DEBUG] $*" >&2
+    fi
+}
 export -f debug
 
 phylomera() { /opt/gabbi/scripts/phylomera*.sh "$@"; }

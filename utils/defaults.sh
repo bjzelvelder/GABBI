@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Default parameter values — override via command-line arguments in %runscript
 
 export GABBI_DEBUG="${GABBI_DEBUG:-0}"
 export PRE="${PRE:-cactus_alignment}"
