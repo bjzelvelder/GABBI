@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Phase 6 — Get targeted loci and ancestral sequences from final phyluce probe set
-# Inputs:  05_final_phyluce_probes/mapping/${PRE}-genome-fasta/
-#          05_final_phyluce_probes/conserved_loci/${PRE}.${SHR_THRESHOLD}.phyluce.loci.cons.fasta
+# Inputs:  05_adding_genomes/mapping/${PRE}-genome-fasta/
+#          05_adding_genomes/conserved_loci/${PRE}.${SHR_THRESHOLD}.phyluce.loci.cons.fasta
 # Outputs: 06_final_targeted_loci/${PRE}.final.anc.loci.fasta
 
 source /opt/gabbi/utils/gabbi_functions.sh
@@ -24,7 +24,7 @@ else
 
     mkdir -p split_loci targeted_loci
 
-    genome_loci="$GABBI_WORKDIR/05_final_phyluce_probes/mapping/${PRE}-genome-fasta/"
+    genome_loci="$GABBI_WORKDIR/05_adding_genomes/mapping/${PRE}-genome-fasta/"
 
     # Regroup per-taxon sequences into per-locus FASTA files
     for genome in "$genome_loci"/*.fasta; do
@@ -37,7 +37,7 @@ else
 
     parallel -j "$THREADS" " \
         cat split_loci/*__{}__* > targeted_loci/{}.fasta
-    " ::: $(tail -n +4 "$GABBI_WORKDIR"/05_final_phyluce_probes/final_phyluce_probes/${PRE}.${SHR_THRESHOLD}.conf)
+    " ::: $(tail -n +4 "$GABBI_WORKDIR"/05_adding_genomes/final_phyluce_probes/${PRE}.${SHR_THRESHOLD}.conf)
 
     checkpoint_mark "step6.1_extract_targeted_loci"
 fi
@@ -55,7 +55,7 @@ else
     echo "[GABBI] Step 6.2: Aligning targeted loci and building gene trees..."
 
     # Remove variation held by only one taxon (fix the AMAS trim threshold to 2 taxa out of total taxa)
-    N_TAXA=$(ls "$GABBI_WORKDIR"/05_final_phyluce_probes/mapping/${PRE}-genome-fasta/|wc -l)
+    N_TAXA=$(ls "$GABBI_WORKDIR"/05_adding_genomes/mapping/${PRE}-genome-fasta/|wc -l)
     trim=$(awk -v n="$N_TAXA" 's=200/n { print int(s) }' <(echo ))
 
     phylomera \
