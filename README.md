@@ -177,11 +177,13 @@ Once you have prepared your input data, you can run the GABBI pipeline. Here are
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
 ```
 
+
   - Personnalize basic pipeline outputs and logs:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 64 --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2>&1
 ```
+
 
   - Run GABBI on a Slurm cluster, increasing default cactus ressources:
 ```
@@ -189,15 +191,15 @@ singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes a
     --threads 128 --debug --cactus-slurm --cactus-maxCores 32G --cactus-maxDisk 300G --cactus-maxMemory 1000G \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output
 ```
-> If you don't manage to get cactus running with these options, you may consider running cactus outside of the GABBI pipeline to fine-tune ressource requirements
-> In this case, once you have your ```.hal``` file, you can copy it back in the ```GABBI_output/01_cactus_alignment/``` folder, make sur that it is named ```<prefix>.hal``` as in the ```--prefix <prefix>``` option, then manually add a checkpoint for cactus with ```touch GABBI_output/.gabbi_checkpoints/step1.1_cactus_alignment```
+
   
-  - Run the GABBI pipeline and stop before _in silico_ capture on additional genomes:
+  - Run the GABBI pipeline and stop before _in silico_ capture on additional genomes to check temporary probes:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 64 --stop-before 05_adding_genomes --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2> /dev/null
 ```
 > With this command, you can provide an empty ```additional_genomes/``` folder to start the GABBI pipeline and add your additional genomes later by simply running the pipeline again without the ```--stop-before``` option
+
 
   - Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
 ```
@@ -205,6 +207,7 @@ singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes a
     --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 80 \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
 ```
+
 
   - Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
 ```
@@ -217,7 +220,8 @@ Each step is checkpointed if it succesfully ran, so running the same command aga
 If one step fails, the pipeline stops and will restart where it failed running the same command. Note that sometimes, issues are not correctly caught by the checkpointing system, so you might have to restart from an anterior step once you found the issue. Please report issues in the corresponding github sections to help me improve the pipeline!
 
 >[!IMPORTANT]
->If you encounter issues running cactus, you may consider running it separately to fine tune cactus options or run it step by step by refering to [ProgressiveCactus Documentation](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/progressive.md).
+> If you don't manage to get cactus running, you may consider running it separately to fine tune cactus options or run it step by step by referring to [cactus documentation](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/progressive.md).
+> In this case, once you have your ```.hal``` file, you can copy it back in the ```GABBI_output/01_cactus_alignment/``` folder, make sur that it is named ```<prefix>.hal``` as in the ```--prefix <prefix>``` option, then manually add a checkpoint for cactus with ```touch GABBI_output/.gabbi_checkpoints/step1.1_cactus_alignment```
 
 ## Reading GABBI outputs
 
@@ -257,7 +261,10 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
 > The asterisk (*) means that multiple files have the same pattern.
 
 # Future directions
-
+- Run a species tree /gene trees easily using phylomera_v0.8.3.sh on targeted loci alignments to check the resulting phylogeny
+- Run in silico capture on simulated target capture data using art illumina, bbmap and aTRAM or PHYLUCE
+- Annotate your probe set using annotated genomes
+- Synthesize your probe set (remove redundant sequences)?
 
 ---
 # Detailed options
