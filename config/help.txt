@@ -37,12 +37,15 @@
 
       Genome alignment options
       ------------------------
-      --cactus-maxDisk  INT   Increase the maximum amount of disk used by cactus, with K, M or G suffix
-                              to specify Kilo, Mega or Gigabytes. [50G]
-      --cactus-maxCores INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
-      --block-size      INT   Minimum number of taxa (including ancestral genomes) required to retain
-                              an alignment block [70 % of extent and ancestral genomes]
-      --block-length    INT   Minimum length (nt) required to retain an alignment block [200]
+      --cactus-slurm           Activate cactus --batchSystem slurm option if running on a Slurm HPC cluster [off]
+      --cactus-maxDisk   INT   Increase the maximum amount of disk used by cactus, with K, M or G suffix
+                               to specify Kilo, Mega or Gigabytes. [50G]
+      --cactus-maxCores  INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
+      --cactus-maxMemory INT   Maximum amount of memory used by cactus (to avoid any issue, the higher is always
+                               the better) [128G]
+      --block-size       INT   Minimum number of taxa (including ancestral genomes) required to retain
+                               an alignment block [70 % of extent and ancestral genomes]
+      --block-length     INT   Minimum length (nt) required to retain an alignment block [200]
 
       Temporary probe options
       -----------------------
@@ -59,4 +62,3 @@
                                   the phyluce probe set [90]
       --final_probes_tiling  INT  Tiling density used by phyluce to make the final phyluce probe set [3]
       --final_probes_masking FLT  Maximum fraction of masked sites authorized in the final phyluce probe set [0.25]
-
