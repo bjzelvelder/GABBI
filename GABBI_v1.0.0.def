@@ -75,7 +75,7 @@ From: ubuntu:22.04
     phases/02_conserved_loci.sh               /opt/gabbi/phases/02_conserved_loci.sh
     phases/03_cross_blast.sh                  /opt/gabbi/phases/03_cross_blast.sh
     phases/04_shr_extraction.sh               /opt/gabbi/phases/04_shr_extraction.sh
-    phases/05_final_phyluce_probes.sh         /opt/gabbi/phases/05_final_phyluce_probes.sh
+    phases/05_adding_genomes.sh               /opt/gabbi/phases/05_adding_genomes.sh
     phases/06_final_targeted_loci.sh          /opt/gabbi/phases/06_final_targeted_loci.sh
     scripts/clean_amas_partition.py           /opt/gabbi/scripts/clean_amas_partition.py
     scripts/drop_short_seq.py                 /opt/gabbi/scripts/drop_short_seq.py
