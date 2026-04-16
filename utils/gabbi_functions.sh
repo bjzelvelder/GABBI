@@ -6,6 +6,7 @@ debug() {
     if [[ "${GABBI_DEBUG:-0}" -eq 1 ]]; then
         echo "[GABBI][DEBUG] $*" >&2
     fi
+	return 0
 }
 export -f debug
 
