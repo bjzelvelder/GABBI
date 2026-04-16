@@ -177,20 +177,26 @@ Once you have prepared your input data, you can run the GABBI pipeline. Here are
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
 ```
 
-  - Run GABBI on a SLURM Cluster:
-
-
   - Personnalize basic pipeline outputs and logs:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log
+    --threads 64 --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2>&1
 ```
 
-  - Only run Cactus whole-genome alignment and increas max disk space and debug option:
+  - Run GABBI on a Slurm cluster, increasing default cactus ressources:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --stop-before 02_conserved_loci --cactus-maxDisk 300G --debug \
-    --prefix GABBI_Curculioninae_v0 --out-dir TEST_cactus > TEST_cactus.log 2&>1
+    --threads 128 --debug --cactus-slurm --cactus-maxCores 32G --cactus-maxDisk 300G --cactus-maxMemory 1000G \
+    --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output
+```
+> If you don't manage to get cactus running with these options, you may consider running cactus outside of the GABBI pipeline to fine-tune ressource requirements
+> In this case, once you have your ```.hal``` file, you can copy it back in the ```GABBI_output/01_cactus_alignment/``` folder, make sur that it is named ```<prefix>.hal``` as in the ```--prefix <prefix>``` option, then manually add a checkpoint for cactus with ```touch GABBI_output/.gabbi_checkpoints/step1.1_cactus_alignment```
+  
+  - Run the GABBI pipeline and stop before _in silico_ capture on additional genomes to evaluate the effect of block length:
+```
+singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+    --threads 128 --debug --cactus-maxDisk 300G --cactus-maxMemory 500G --block-size 17 \
+    --stop-before 05_adding_genomes --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2> /dev/null
 ```
 
   - Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
@@ -237,7 +243,7 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
   - ```shr/```: List of temporary SHR sequences obtained from filtered cross-BLAST results.
   - ```cactus_alignment.temp.loci.fasta```: FASTA file containing all temporary targeted loci.
   - ```cactus_alignment.temp.anc.loci.fasta```: FASTA file containing all temporary targeted loci and their ancestral sequences.
-- ```05_final_phyluce_probes```
+- ```05_adding_genomes```
   - ```temp_probes/cactus_alignment.temp.anc.probes.fasta```: Temporary probes generated from temporary targeted loci.
   - ```mapping/```: Results from LASTZ mapping of temporary probes on each chromosome-level and additional genomes.
   - ```final_phyluce_probes/cactus_alignment.70.probe_list-DUPE-SCREENED.fasta```: Final probe set (without ancestral sequences) generated with PHYLUCE.
@@ -286,7 +292,7 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
                                     [none]
       --stop-before   STR   Interrupt the pipeline before the given phase. Valid phases are numbered from 1 to 6:
                                     01_cactus_alignment, 02_conserved_loci, 03_cross_blast, 04_shr_extraction,
-                                    05_final_phyluce_probes, 06_final_targeted_loci [none]
+                                    05_adding_genomes, 06_final_targeted_loci [none]
       --debug               Print additional diagnostic information to stderr during execution.
                             Useful for development and troubleshooting [off]
       --threads, -t   INT   Number of CPU threads to allocate [all available by nproc command]
