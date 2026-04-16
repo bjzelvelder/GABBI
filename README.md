@@ -192,12 +192,12 @@ singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes a
 > If you don't manage to get cactus running with these options, you may consider running cactus outside of the GABBI pipeline to fine-tune ressource requirements
 > In this case, once you have your ```.hal``` file, you can copy it back in the ```GABBI_output/01_cactus_alignment/``` folder, make sur that it is named ```<prefix>.hal``` as in the ```--prefix <prefix>``` option, then manually add a checkpoint for cactus with ```touch GABBI_output/.gabbi_checkpoints/step1.1_cactus_alignment```
   
-  - Run the GABBI pipeline and stop before _in silico_ capture on additional genomes to evaluate the effect of block length:
+  - Run the GABBI pipeline and stop before _in silico_ capture on additional genomes:
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --threads 128 --debug --cactus-maxDisk 300G --cactus-maxMemory 500G --block-size 17 \
-    --stop-before 05_adding_genomes --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2> /dev/null
+    --threads 64 --stop-before 05_adding_genomes --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2> /dev/null
 ```
+> With this command, you can provide an empty ```additional_genomes/``` folder to start the GABBI pipeline and add your additional genomes later by simply running the pipeline again without the ```--stop-before``` option
 
   - Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
 ```
