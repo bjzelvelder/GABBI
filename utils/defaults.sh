@@ -8,7 +8,26 @@ export RESTART="${RESTART:-}"
 export THREADS="${THREADS:-$(nproc)}"
 export CACTUS_MAXDISK="${CACTUS_MAXDISK:-50G}"
 export CACTUS_MAXCORES="${CACTUS_MAXCORES:-32G}"
+if [ ${CACTUS_MAXCORES:-32} > ${THREADS:-$(nproc)} ]; then
+    export CACTUS_MAXCORES="${THREADS:-$(nproc)}"
+else
+    export CACTUS_MAXCORES="${CACTUS_MAXCORES:-32}"
+fi
 export CACTUS_MAXMEM="${CACTUS_MAXMEM:-128G}"
+export CACTUS_DEFMEM="${CACTUS_DEFMEM:-64G}"
+if [[ "$CACTUS_MAXMEM" =~ "G" ]] ;then
+    if [[ "${CACTUS_MAXMEM/G/}" -ge "${CACTUS_DEFMEM/G/}" ]]; then
+        export CACTUS_DEFMEM="${CACTUS_DEFMEM:-64G}"
+    else
+        export CACTUS_DEFMEM="${CACTUS_MAXMEM}"
+    fi
+else
+    if [[ $((${CACTUS_MAXMEM/M/} / 1000)) -ge "${CACTUS_DEFMEM/G/}" ]]; then
+        export CACTUS_DEFMEM="${CACTUS_DEFMEM:-64G}"
+    else
+        export CACTUS_DEFMEM="${CACTUS_MAXMEM}"
+    fi
+fi
 export BLOCK_LENGTH="${BLOCK_LENGTH:-200}"
 export CROSS_BLAST_EV="${CROSS_BLAST_EV:-1E-6}"
 export CROSS_BLAST_WS="${CROSS_BLAST_WS:-11}"
