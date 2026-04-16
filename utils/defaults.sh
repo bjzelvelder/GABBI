@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export SLURM="${SLURM:-0}"
 export GABBI_DEBUG="${GABBI_DEBUG:-0}"
 export PRE="${PRE:-cactus_alignment}"
 export OUT="${OUT:-GABBI_out}"
