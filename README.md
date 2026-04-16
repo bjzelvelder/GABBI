@@ -28,6 +28,8 @@ To run this pipeline, all you need is the [singularity image](https://cloud.syla
 # Installation
 The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-called _singularity image_) to avoid installation issues and incompatibilities. Thus, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.0.0 installed. This software can be installed following this tutorial: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, I will always refer to ```singularity``` rather than ```apptainer``` but all commands that start with ```singularity ...``` can be spelled ```apptainer ...```. 
 
+GABBI is distributed as a Singularity image and has no external dependencies beyond Singularity/Apptainer itself. On HPC clusters managed by SLURM, Singularity is typically available as an environment module that can be searched throught ```module search singularity``` and can be loaded with ```module load <singularity module>``` prior to execution.
+
 ## Downloading the GABBI singularity image
 Because a singularity image is too heavy to be stored and pulled from github, you will not find the ```.sif``` file in this repository. However, the [GABBI image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) is stored on the **Sylabs** remote repository and can simply be pulled with this command:
 ```
@@ -115,18 +117,19 @@ Once you have chosen the genomes you want to represent in your probe design, you
 ```
 conda install -c conda-forge ncbi-datasets-cli
 ```
-Then, download the NCBI table of your active selection:
+Then, download the NCBI table of your active selection, making sure that you have **selected the Assembly Level column** (to let the script organize genomes accordingly):
 <p align="center">
   <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="600"/>
 </p>
-And give it as an argument to the script:
+
+To download genomes of your downloaded table, give it as an argument to the script:
 
 ```
 ./download_genomes_ncbi.sh [path_to_ncbi_table]
 ```
 
 ### Organizing directory architecture
-As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder named after the taxon name you want to keep during the analysis. The ```download_genomes_ncbi.sh``` script should have organized your genome selection in this way, but you can obvisouly add your own genomic alignments by following the same logic. 
+As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder named after the taxon name you want to keep during the analysis. The ```download_genomes_ncbi.sh``` script should have organized your genome selection in this way, but you can obvisouly add your own genomic alignments by following the same logic (simply make sure that they have the ```.fasta``` or ```.fna``` file extension). You can also transfer chromosome level genomes to the ```additional_genomes/``` folder if you don't want them to be part of the genome alignment step (see [Choosing representative taxa](#choosing-representative-taxa).
 
 High quality, chromosome-level genomes are strongly recommended for cactus whole-genome alignments, so they need to be stored in a seperate folder as other genomes to be parsed through the ```--chr-level-genomes``` option. Here is how your directory architecture should look like:
 
@@ -155,7 +158,7 @@ for i in chr_level_genomes/* additional_genomes/*; do mv $i ${i%_*} ;done
 ```
 
 > [!NOTE]
-> Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#detailed-options). Simply make sure that they have the ```.fasta``` or ```.fna``` file extension.
+> Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#detailed-options).
 
 ### Getting a guide tree
 The whole-genome alignment step requires a guide tree to run. This phylogenetic tree must be provided as a **NEWICK** file with **matching taxon names** with the chromosome level genomes provided in the ```chr_level_genomes/``` folder. You can check the ```chr_level_genomes.nw``` format for reference.
@@ -173,6 +176,9 @@ Once you have prepared your input data, you can run the GABBI pipeline. Here are
 ```
 singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
 ```
+
+  - Run GABBI on a SLURM Cluster:
+
 
   - Personnalize basic pipeline outputs and logs:
 ```
@@ -203,6 +209,9 @@ singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes a
 
 Each step is checkpointed if it succesfully ran, so running the same command again will resume the pipeline where it stopped.
 If one step fails, the pipeline stops and will restart where it failed running the same command. Note that sometimes, issues are not correctly caught by the checkpointing system, so you might have to restart from an anterior step once you found the issue. Please report issues in the corresponding github sections to help me improve the pipeline!
+
+>[!IMPORTANT]
+>If you encounter issues running cactus, you may consider running it separately to fine tune cactus options or run it step by step by refering to [ProgressiveCactus Documentation](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/progressive.md).
 
 ## Reading GABBI outputs
 
