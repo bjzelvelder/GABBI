@@ -43,15 +43,31 @@ else
 
     echo "[GABBI] Step 1.1: Running Cactus whole-genome alignment..."
 
-    cactus ./js \
-        cactus_input.txt \
-        ${PRE}.hal \
-        --maxCores "$CACTUS_MAXCORES" \
-        --maxDisk "$CACTUS_MAXDISK" \
-        || checkpoint_fail "step1.1_cactus_alignment"
-
+    if [ $SLURM ]; then
+        cactus ./js \
+            cactus_input.txt \
+            ${PRE}.hal \
+            --maxCores "$CACTUS_MAXCORES" \
+            --maxDisk "$CACTUS_MAXDISK" \
+             --batchSystem slurm \
+             --consCores "$CACTUS_MAXCORES" \
+             --doubleMem true \
+             --batchLogsDir cactus_logs \
+             --maxMemory "$CACTUS_MAXMEM"
+    else
+        cactus ./js \
+            cactus_input.txt \
+            ${PRE}.hal \
+            --maxCores "$CACTUS_MAXCORES" \
+            --maxDisk "$CACTUS_MAXDISK" \
+            --maxMemory "$CACTUS_MAXMEM"
+    fi
 #    echo "[GABBI] Cactus HAL tree:"
 #    halStats --tree cactus_chr_level.hal
+    if [ ! -f ${PRE}.hal ]; then
+        checkpoint_fail "step1.1_cactus_alignment"
+    fi
+    
     debug "Genome names = $(halStats --genomes ${PRE}.hal)"
 
     checkpoint_mark "step1.1_cactus_alignment"
