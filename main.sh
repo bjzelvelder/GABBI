@@ -105,7 +105,7 @@ VALID_PHASES=(
     "2" "02" "02_conserved_loci" "conserved_loci"
     "3" "03" "03_cross_blast" "cross_blast" "blast"
     "4" "04" "04_shr_extraction" "shr_extraction" "extraction"
-    "5" "05" "05_final_phyluce_probes" "final_phyluce_probes" "phyluce_probes"
+    "5" "05" "05_adding_genomes" "adding_genomes" "add_genomes"
     "6" "06" "06_final_targeted_loci" "final_targeted_loci"
 )
 
