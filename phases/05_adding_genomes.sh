@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Phase 5 — Temporary probe design and mapping to additional genomes
 # Inputs:  04_shr_extraction/${PRE}.temp.anc.loci.fasta, $ADD_GENOMES
-# Outputs: 05_final_phyluce_probes/mapping/${PRE}-genome-fasta/
-#          05_final_phyluce_probes/consensus_loci/${PRE}.${SHR_THRESHOLD}.phyluce.loci.cons.fasta
+# Outputs: 05_adding_genomes/mapping/${PRE}-genome-fasta/
+#          05_adding_genomes/consensus_loci/${PRE}.${SHR_THRESHOLD}.phyluce.loci.cons.fasta
 
 source /opt/gabbi/utils/gabbi_functions.sh
 source /opt/gabbi/utils/checkpoint.sh
 
-mkdir -p 05_final_phyluce_probes
-cd 05_final_phyluce_probes
+mkdir -p 05_adding_genomes
+cd 05_adding_genomes
 
 source /opt/miniconda3/etc/profile.d/conda.sh
 conda init --all > /dev/null 2>&1
@@ -168,7 +168,7 @@ else
     SHR_THRESHOLD_NUMBER=$(awk -v thr_taxa="$SHR_THRESHOLD_TAXA" '$4 >= thr_taxa { print $6 }' multifasta_table/${PRE}.table | head -n 1)
 
     echo "[GABBI] SHR loci shared by >= ${SHR_THRESHOLD}% of taxa: $SHR_THRESHOLD_NUMBER"
-    echo "[GABBI] Note: You can change this threshold with --shr-threshold based on 05_final_phyluce_probes/multifasta_table/${PRE}.table"
+    echo "[GABBI] Note: You can change this threshold with --shr-threshold based on 05_adding_genomes/multifasta_table/${PRE}.table"
     echo "[GABBI] and restart GABBI with --restart 5.5"
     sleep 10
 
@@ -262,11 +262,11 @@ SHR_THRESHOLD_TAXA=$(tail -n +2 multifasta_table/${PRE}.table|awk -v thr="$SHR_T
 echo "[GABBI] ============================================================"
 echo "[GABBI] PHASE 5: Completed at $(date '+%Y/%m/%d %H:%M:%S')"
 echo "[GABBI] Minimum number of taxa to keep a locus:            $SHR_THRESHOLD_TAXA (${SHR_THRESHOLD}%)"
-echo "[GABBI] Final probe set (without ancestral sequences):     ${OUT:-GABBI_out}/05_final_phyluce_probes/final_phyluce_probes/${PRE}.${SHR_THRESHOLD}.probe_list-DUPE-SCREENED.fasta"
-echo "[GABBI] Consensus sequences of targeted loci:              ${OUT:-GABBI_out}/05_final_phyluce_probes/consensus_loci/${PRE}.${SHR_THRESHOLD}.phyluce.loci.cons.fasta"
+echo "[GABBI] Final probe set (without ancestral sequences):     ${OUT:-GABBI_out}/05_adding_genomes/final_phyluce_probes/${PRE}.${SHR_THRESHOLD}.probe_list-DUPE-SCREENED.fasta"
+echo "[GABBI] Consensus sequences of targeted loci:              ${OUT:-GABBI_out}/05_adding_genomes/consensus_loci/${PRE}.${SHR_THRESHOLD}.phyluce.loci.cons.fasta"
 echo "[GABBI] Number of targeted loci:                           $(grep -c ">" consensus_loci/${PRE}.${SHR_THRESHOLD}.phyluce.loci.cons.fasta)"
 echo "[GABBI] Number of probes:                                  $(grep -c ">" final_phyluce_probes/${PRE}.${SHR_THRESHOLD}.probe_list-DUPE-SCREENED.fasta)"
-echo "[GABBI] Note: You can change this threshold with --shr-threshold based on 05_final_phyluce_probes/multifasta_table/${PRE}.table"
+echo "[GABBI] Note: You can change this threshold with --shr-threshold based on 05_adding_genomes/multifasta_table/${PRE}.table"
 echo "[GABBI]       and restart GABBI with --restart 5.5"
 echo "[GABBI] ============================================================"
 
