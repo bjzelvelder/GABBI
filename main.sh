@@ -18,16 +18,18 @@ while [[ $# -gt 0 ]]; do
 	--add-genomes)          export ADD_GENOMES="$2";           shift 2 ;;
 
 	# -- Pipeline control -----------------------------------------------
-        --prefix)               export PRE="$2";                   shift 2 ;;
-        -o|--out-dir)           export OUT="$2";                   shift 2 ;;
+    --prefix)               export PRE="$2";                   shift 2 ;;
+	-o|--out-dir)           export OUT="$2";                   shift 2 ;;
 	-t|--threads)           export THREADS="$2";               shift 2 ;;
-        --restart)              export RESTART="$2";               shift 2 ;;
+	--restart)              export RESTART="$2";               shift 2 ;;
 	--stop-before)          export STOP_BEFORE="$2";           shift 2 ;;
-        --debug)                export GABBI_DEBUG=1;              shift ;;
+    --debug)                export GABBI_DEBUG=1;              shift ;;
 
 	# -- Genome alignment options ---------------------------------------
-        --cactus-maxDisk)       export CACTUS_MAXDISK="$2";        shift 2 ;;
-        --cactus-maxCores)      export CACTUS_MAXCORES="$2";       shift 2 ;;
+	--cactus-slurm)         export SLURM=1;                    shift ;;
+    --cactus-maxDisk)       export CACTUS_MAXDISK="$2";        shift 2 ;;
+    --cactus-maxCores)      export CACTUS_MAXCORES="$2";       shift 2 ;;
+	--cactus-maxMemory)     export CACTUS_MAXMEM="$2";         shift 2 ;;
 	--block-size)           export BLOCK_SIZE="$2";            shift 2 ;;
 	--block-length)         export BLOCK_LENGTH="$2";          shift 2 ;;
 
@@ -40,8 +42,8 @@ while [[ $# -gt 0 ]]; do
 
 	# -- Final probe design options -------------------------------------
 	--shr-threshold)        export SHR_THRESHOLD="$2";         shift 2 ;;
-        --final-probes-tiling)  export FP_TILING_DENSITY="$2";     shift 2 ;;
-        --final-probes-masking) export FP_MASKING="$2";            shift 2 ;;
+    --final-probes-tiling)  export FP_TILING_DENSITY="$2";     shift 2 ;;
+    --final-probes-masking) export FP_MASKING="$2";            shift 2 ;;
 
 	*) echo "[GABBI] ERROR: Unknown argument: $1" >&2; exit 1 ;;
 
@@ -74,22 +76,19 @@ debug "N_ADD_TAXA = $N_ADD_TAXA"
 # -- Genome alignment options -----------------------------------------------
 [[ -n "${THREADS:-}" && ! "$THREADS" =~ ^[1-9][0-9]*$ ]] && echo "[GABBI] ERROR: --threads '${THREADS}' must be a positive integer." >&2 && exit 1
 
-[[ -n "${CACTUS_MAXDISK:-}" && ! "$CACTUS_MAXDISK" =~ ^[1-9][0-9]*[KMG]$ ]] && echo "[GABBI] ERROR: --cactus-maxDisk '${CACTUS_MAXDISK}' must be a positive integer followed by 'K, M, G or T' (Kilo, Mega, Giga and Terabytes)." >&2 && exit 1
+[[ -n "${CACTUS_MAXDISK:-}" && ! "$CACTUS_MAXDISK" =~ ^[1-9][0-9]*[MG]$ ]] && echo "[GABBI] ERROR: --cactus-maxDisk '${CACTUS_MAXDISK}' must be a positive integer followed by 'M or G' (Mega or Gigabytes)." >&2 && exit 1
 [[ -n "${CACTUS_MAXCORES:-}" && ! "$CACTUS_MAXCORES" =~ ^[1-9][0-9]*$ ]] && echo "[GABBI] ERROR: --cactus-maxCores '${CACTUS_MAXCORES}' must be a positive integer." >&2 && exit 1
+[[ -n "${CACTUS_MAXMEM:-}" && ! "$CACTUS_MAXMEM" =~ ^[1-9][0-9]*[MG]$ ]] && echo "[GABBI] ERROR: --cactus-maxMemory '${CACTUS_MAXMEM}' must be a positive integer followed by 'M or G' (Mega or Gigabytes)." >&2 && exit 1
 
 [[ -n "${BLOCK_SIZE:-}" && ! "$BLOCK_SIZE" =~ ^[1-9][0-9]*$ ]] && echo "[GABBI] ERROR: --block-size '${BLOCK_SIZE}' must be a positive integer (minimum number of taxa in a block of alignment)." >&2 && exit 1
-
 [[ -n "${BLOCK_LENGTH:-}" && ! "$BLOCK_LENGTH" =~ ^[1-9][0-9]*$ ]] && echo "[GABBI] ERROR: --block-length '${BLOCK_LENGTH}' must be a positive integer (minimum alignment block length in nucleotides)." >&2 && exit 1
 
 # -- Temporary probe options -------------------------------------------------
 [[ -n "${CROSS_BLAST_EV:-}" && ! "$CROSS_BLAST_EV" =~ ^[0-9]+([.][0-9]+)?(E|e)-?[0-9]+$ ]] && echo "[GABBI] ERROR: --cross-blast-ev '${CROSS_BLAST_EV}' must be a valid scientific notation e-value (e.g. 1E-6)." >&2 && exit 1
-
 [[ -n "${CROSS_BLAST_WS:-}" && ! "$CROSS_BLAST_WS" =~ ^[1-9][0-9]*$ ]] && echo "[GABBI] ERROR: --cross-blast-ws '${CROSS_BLAST_WS}' must be a positive integer." >&2 && exit 1
-
 [[ -n "${CROSS_BLAST_QC:-}" && ! "$CROSS_BLAST_QC" =~ ^([1-9][0-9]?|100)$ ]] && echo "[GABBI] ERROR: --cross-blast-qc '${CROSS_BLAST_QC}' must be an integer between 1 and 100 (percentage)." >&2 && exit 1
 
 [[ -n "${TEMP_TAX_THRESHOLD:-}" && ! "$TEMP_TAX_THRESHOLD" =~ ^([1-9][0-9]?|100)$ ]] && echo "[GABBI] ERROR: --temp-tax-threshold '${TEMP_TAX_THRESHOLD}' must be an integer between 1 and 100 (percentage)." >&2 && exit 1
-
 [[ -n "${TEMP_ALLOW_DUPES:-}" && "$TEMP_ALLOW_DUPES" > $N_CHR_TAXA && ! "$TEMP_ALLOW_DUPES" =~ ^[0-9]+$ ]] && echo "[GABBI] ERROR: --temp-allow-dupes '${TEMP_ALLOW_DUPES}' must be a non-negative integer." >&2 && exit 1
 
 # -- Final probe design options ---------------------------------------------
@@ -161,7 +160,7 @@ debug "CORES_PER_JOB=$CORES_PER_JOB PARALLEL_JOBS=$PARALLEL_JOBS"
 debug "CHR_GENOMES=$CHR_GENOMES/*/"
 
 # ---------------------------------------------------------------------------
-# Main GABBI script that sources utilities, sets arguments and default parameters and calls phases in order
+# Main script that sources utilities, sets arguments and default parameters and calls phases in order
 # ---------------------------------------------------------------------------
 
 GABBI_ROOT="/opt/gabbi"
