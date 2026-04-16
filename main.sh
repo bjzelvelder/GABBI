@@ -67,7 +67,8 @@ debug "N_CHR_TAXA = $N_CHR_TAXA"
 [[ -z "${GUIDE_TREE:-}" ]] && echo "[GABBI] ERROR: --guide-tree is required. Please provide a path to a Newick-format species tree of chromosome-level genomes to provide a guide tree for Cactus." >&2 && exit 1
 [[ -n "${GUIDE_TREE:-}" && ! -f "$GUIDE_TREE" ]] && echo "[GABBI] ERROR: --guide-tree '${GUIDE_TREE}' does not exist or is not a file." >&2 && exit 1
 
-[[ -z "${ADD_GENOMES:-}" ]] && echo "[GABBI] ERROR: --add-genomes is required. Please provide a path to the directory containing additional genomes for temporary probe validation." >&2 && exit 1
+[[ -z "${ADD_GENOMES:-}" ]] && echo -e "[GABBI] ERROR: --add-genomes is required. Please provide a path to the directory containing additional genomes for temporary probe validation. \n \
+Note: If you want to run GABBI without additional genomes, you can provide an empty folder and add \"--stop-before 05_add_genomes\" option to command-line." >&2 && exit 1
 [[ -n "${ADD_GENOMES:-}" && ! -d "$ADD_GENOMES" ]] && echo "[GABBI] ERROR: --add-genomes '${ADD_GENOMES}' does not exist or is not a directory." >&2 && exit 1
 export N_ADD_TAXA=$(ls -d "$ADD_GENOMES"/*/|wc -l)
 
