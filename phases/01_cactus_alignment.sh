@@ -51,7 +51,7 @@ else
             --maxDisk "$CACTUS_MAXDISK" \
              --batchSystem slurm \
              --consCores "$CACTUS_MAXCORES" \
-             --doubleMem true \
+             --defaultMemory "$CACTUS_DEFMEM" \
              --batchLogsDir cactus_logs \
              --maxMemory "$CACTUS_MAXMEM"
     else
