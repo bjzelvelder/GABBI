@@ -43,7 +43,7 @@ else
 
     echo "[GABBI] Step 1.1: Running Cactus whole-genome alignment..."
 
-    if [ $SLURM ]; then
+    if [ $SLURM = 1 ]; then
         cactus ./js \
             cactus_input.txt \
             ${PRE}.hal \

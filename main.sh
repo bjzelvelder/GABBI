@@ -18,17 +18,17 @@ while [[ $# -gt 0 ]]; do
 	--add-genomes)          export ADD_GENOMES="$2";           shift 2 ;;
 
 	# -- Pipeline control -----------------------------------------------
-    --prefix)               export PRE="$2";                   shift 2 ;;
+	--prefix)               export PRE="$2";                   shift 2 ;;
 	-o|--out-dir)           export OUT="$2";                   shift 2 ;;
 	-t|--threads)           export THREADS="$2";               shift 2 ;;
 	--restart)              export RESTART="$2";               shift 2 ;;
 	--stop-before)          export STOP_BEFORE="$2";           shift 2 ;;
-    --debug)                export GABBI_DEBUG=1;              shift ;;
+	--debug)                export GABBI_DEBUG=1;              shift ;;
 
 	# -- Genome alignment options ---------------------------------------
 	--cactus-slurm)         export SLURM=1;                    shift ;;
-    --cactus-maxDisk)       export CACTUS_MAXDISK="$2";        shift 2 ;;
-    --cactus-maxCores)      export CACTUS_MAXCORES="$2";       shift 2 ;;
+	--cactus-maxDisk)       export CACTUS_MAXDISK="$2";        shift 2 ;;
+	--cactus-maxCores)      export CACTUS_MAXCORES="$2";       shift 2 ;;
 	--cactus-maxMemory)     export CACTUS_MAXMEM="$2";         shift 2 ;;
 	--block-size)           export BLOCK_SIZE="$2";            shift 2 ;;
 	--block-length)         export BLOCK_LENGTH="$2";          shift 2 ;;
@@ -42,8 +42,8 @@ while [[ $# -gt 0 ]]; do
 
 	# -- Final probe design options -------------------------------------
 	--shr-threshold)        export SHR_THRESHOLD="$2";         shift 2 ;;
-    --final-probes-tiling)  export FP_TILING_DENSITY="$2";     shift 2 ;;
-    --final-probes-masking) export FP_MASKING="$2";            shift 2 ;;
+	--final-probes-tiling)  export FP_TILING_DENSITY="$2";     shift 2 ;;
+	--final-probes-masking) export FP_MASKING="$2";            shift 2 ;;
 
 	*) echo "[GABBI] ERROR: Unknown argument: $1" >&2; exit 1 ;;
 
