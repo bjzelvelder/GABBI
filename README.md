@@ -1,4 +1,4 @@
-# GABBI pipeline version 1.0.0
+# GABBI pipeline version 1.0.1
 > _Genome Alignment-Based Bait Inference_
 
 
@@ -9,7 +9,7 @@ This pipeline was designed in this publication to produce the first set of weevi
 > Zelvelder B, ... GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... doi:X
 
 # Requirements
-To run this pipeline, all you need is the [singularity image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) and a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
+To run this pipeline, all you need is the [singularity image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) and a linux environment with ```apptainer``` version >= 1.0.1 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
 
 # Table of contents
 1. [Installation](#installation)
@@ -26,19 +26,19 @@ To run this pipeline, all you need is the [singularity image](https://cloud.syla
 
 ---
 # Installation
-The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-called _singularity image_) to avoid installation issues and incompatibilities. Thus, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.0.0 installed. This software can be installed following this tutorial: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, I will always refer to ```singularity``` rather than ```apptainer``` but all commands that start with ```singularity ...``` can be spelled ```apptainer ...```. 
+The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-called _singularity image_) to avoid installation issues and incompatibilities. Thus, all you need is a linux environment with ```apptainer``` version >= 1.0.1 or ```singularity``` version >= 3.0.0 installed. This software can be installed following this tutorial: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, I will always refer to ```singularity``` rather than ```apptainer``` but all commands that start with ```singularity ...``` can be spelled ```apptainer ...```. 
 
 GABBI is distributed as a Singularity image and has no external dependencies beyond Singularity/Apptainer itself. On HPC clusters managed by SLURM, Singularity is typically available as an environment module that can be searched throught ```module search singularity``` and can be loaded with ```module load <singularity module>``` prior to execution.
 
 ## Downloading the GABBI singularity image
 Because a singularity image is too heavy to be stored and pulled from github, you will not find the ```.sif``` file in this repository. However, the [GABBI image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) is stored on the **Sylabs** remote repository and can simply be pulled with this command:
 ```
-singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.0.0
+singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.0.1
 ```
 You should then be able to see the help section with:
 ```
-singularity run-help gabbi_v1.0.0.sif
-singularity run gabbi_v1.0.0.sif --help
+singularity run-help gabbi_v1.0.1.sif
+singularity run gabbi_v1.0.1.sif --help
 ```
 
 ## Building from 'source'
@@ -53,17 +53,17 @@ At that point, you can build the GABBI singularity image (which should take abou
 ### Building the GABBI singularity image
 Inside GABBI's repository, simply execute:
 ```
-singularity build --fakeroot gabbi_v1.0.0.sif GABBI_v1.0.0.def
+singularity build --fakeroot gabbi_v1.0.1.sif GABBI_v1.0.1.def
 ```
 This will create a ```.sif``` image that can be run the same way with:
 ```
-singularity run GABBI_v1.0.0.sif --help
+singularity run GABBI_v1.0.1.sif --help
 ```
 
 ### Building a GABBI sandbox
 Alternatively, if you want to make modifications to the GABBI scripts or simply run the pipeline more interactively from within the singularity image (environment), you can make a GABBI sandbox with a writable fakeroot that will be stored in ```GABBI_sandbox/```:
 ```
-singularity build GABBI_sandbox/ GABBI_v1.0.0.def
+singularity build GABBI_sandbox/ GABBI_v1.0.1.def
 mkdir -p GABBI_sandbox/$PWD
 singularity shell -B $PWD --fakeroot --writable GABBI_sandbox/
 ```
@@ -174,20 +174,20 @@ Once you have prepared your input data, you can run the GABBI pipeline. Here are
 
   - Run the pipeline with minimal options and default arguments, printing logs to STDOUT:
 ```
-singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
+singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
 ```
 
 
   - Personnalize basic pipeline outputs and logs:
 ```
-singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 64 --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2>&1
 ```
 
 
   - Run GABBI on a Slurm cluster, increasing default cactus ressources:
 ```
-singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 128 --debug --cactus-slurm --cactus-maxCores 32G --cactus-maxDisk 300G --cactus-maxMemory 1000G \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output
 ```
@@ -195,7 +195,7 @@ singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes a
   
   - Run the GABBI pipeline and stop before _in silico_ capture on additional genomes to check temporary probes:
 ```
-singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 64 --stop-before 05_adding_genomes --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2> /dev/null
 ```
 > With this command, you can provide an empty ```additional_genomes/``` folder to start the GABBI pipeline and add your additional genomes later by simply running the pipeline again without the ```--stop-before``` option
@@ -203,7 +203,7 @@ singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes a
 
   - Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
 ```
-singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 80 \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
 ```
@@ -211,7 +211,7 @@ singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes a
 
   - Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
 ```
-singularity run gabbi_v1.0.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 70 --restart 5.5_final_phyluce_probes \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
 ```
