@@ -6,8 +6,8 @@ export PRE="${PRE:-cactus_alignment}"
 export OUT="${OUT:-GABBI_out}"
 export RESTART="${RESTART:-}"
 export THREADS="${THREADS:-$(nproc)}"
-export CACTUS_MAXDISK="${CACTUS_MAXDISK:-50G}"
-export CACTUS_MAXCORES="${CACTUS_MAXCORES:-32G}"
+export CACTUS_MAXDISK="${CACTUS_MAXDISK:-300G}"
+export CACTUS_MAXCORES="${CACTUS_MAXCORES:-32}"
 if [ ${CACTUS_MAXCORES:-32} > ${THREADS:-$(nproc)} ]; then
     export CACTUS_MAXCORES="${THREADS:-$(nproc)}"
 else
