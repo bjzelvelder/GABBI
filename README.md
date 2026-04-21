@@ -307,12 +307,14 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
 
       Genome alignment options
       ------------------------
-      --cactus-maxDisk  INT   Increase the maximum amount of disk used by cactus, with K, M or G suffix
-                              to specify Kilo, Mega or Gigabytes. [50G]
-      --cactus-maxCores INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
-      --block-size      INT   Minimum number of taxa (including ancestral genomes) required to retain
-                              an alignment block [70 % of extent and ancestral genomes]
-      --block-length    INT   Minimum length (nt) required to retain an alignment block [200]
+      --cactus-maxDisk   INT   Increase the maximum amount of disk used by cactus, with K, M or G suffix
+                               to specify Kilo, Mega or Gigabytes. [300G]
+      --cactus-maxCores  INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
+      --cactus-maxMemory INT   Maximum amount of memory used by cactus (to avoid any issue, the higher is always
+                               the better) [128G]
+      --block-size       INT   Minimum number of taxa (including ancestral genomes) required to retain
+                               an alignment block [70 % of extent and ancestral genomes]
+      --block-length     INT   Minimum length (nt) required to retain an alignment block [200]
 
       Temporary probe options
       -----------------------
