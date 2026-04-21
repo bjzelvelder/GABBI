@@ -1,6 +1,8 @@
 # GABBI pipeline version 1.0.1
-> _Genome Alignment-Based Bait Inference_
 
+<p align="center">
+  <img width=450 src="/image/GABBI_logo.png" alt="Genome Alignment-Based Bait Inference"/>
+</p>
 
 **GABBI** is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**.
 GABBI-derived probe sets are expected to target more variable loci than usual probe design methods that rely on a base genome to map reads, providing more sensitive and phylogenetically resolutive data.
