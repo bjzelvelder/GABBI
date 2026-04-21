@@ -22,9 +22,14 @@ To run this pipeline, all you need is the [singularity image](https://cloud.syla
     - [Preparing input data](#preparing-input-data)
     - [Running the pipeline](#running-the-pipeline)
     - [Reading GABBI outputs](#reading-gabbi-outputs)
-4. [Detailed options](#detailed-options)
-5. [Citation](#citation)
-6. [References](#references)
+4. [What to do next](#what-to-do-next)
+    - [Running a species tree using the final set of targeted loci](#running-a-species-tree-using-the-final-set-of-targeted-loci)
+    - [Generate your final probe set](#generate-your-final-probe-set)
+    - [Annotate targeted loci as coding or non-coding sequences for downstream analyses](#annotate-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses)
+    - [Testing the probe set _in silico_ on whole genome sequences (WGS)](#testing-the-probe-set-in-silico-on-whole-genome-sequences)
+5. [Detailed options](#detailed-options)
+6. [Citation](#citation)
+7. [References](#references)
 
 ---
 # Installation
@@ -180,25 +185,26 @@ singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes a
 ```
 
 
-  - Personnalize basic pipeline outputs and logs:
+  - Personnalize basic pipeline outputs and add a log file (RECOMMENDED):
 ```
 singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --threads 64 --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2>&1
+    --threads 64 --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output 2>&1 | tee -a GABBI_Curculioninae_v1.log
 ```
 
 
-  - Run GABBI on a Slurm cluster, increasing default cactus ressources:
+  - Run GABBI with increased ressources for cactus (e.g. to run on a HPC cluster):
 ```
 singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --threads 128 --debug --cactus-slurm --cactus-maxCores 32G --cactus-maxDisk 300G --cactus-maxMemory 1000G \
+    --threads 128 --debug --cactus-maxDisk 500G --cactus-maxMemory 500G \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output
 ```
+> If you have access to a HPC cluster, don't hesitate to ask for a lot of memory or a specific node with big memory, as default ressources may not be enough for cactus to run without getting interrupted for memory limits.
 
   
   - Run the GABBI pipeline and stop before _in silico_ capture on additional genomes to check temporary probes:
 ```
 singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --threads 64 --stop-before 05_adding_genomes --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output > GABBI_Curculioninae_v1.log 2> /dev/null
+    --threads 64 --stop-before 05_adding_genomes --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output 2>&1 |tee -a GABBI_Curculioninae_v1.log 2> /dev/null
 ```
 > With this command, you can provide an empty ```additional_genomes/``` folder to start the GABBI pipeline and add your additional genomes later by simply running the pipeline again without the ```--stop-before``` option
 
@@ -207,7 +213,7 @@ singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes a
 ```
 singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 80 \
-    --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
+    --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output 2>&1 |tee -a GABBI_Curculioninae_v2.log 
 ```
 
 
@@ -215,7 +221,7 @@ singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes a
 ```
 singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 70 --restart 5.5_final_phyluce_probes \
-    --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output > GABBI_Curculioninae_v2.log
+    --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output 2>&1 |tee -a GABBI_Curculioninae_v2.log 
 ```
 
 Each step is checkpointed if it succesfully ran, so running the same command again will resume the pipeline where it stopped.
@@ -223,7 +229,7 @@ If one step fails, the pipeline stops and will restart where it failed running t
 
 >[!IMPORTANT]
 > If you don't manage to get cactus running, you may consider running it separately to fine tune cactus options or run it step by step by referring to [cactus documentation](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/progressive.md).
-> In this case, once you have your ```.hal``` file, you can copy it back in the ```GABBI_output/01_cactus_alignment/``` folder, make sur that it is named ```<prefix>.hal``` as in the ```--prefix <prefix>``` option, then manually add a checkpoint for cactus with ```touch GABBI_output/.gabbi_checkpoints/step1.1_cactus_alignment```
+> In this case, once you have your ```.hal``` file, you can copy it back in the ```GABBI_output/01_cactus_alignment/``` folder, make sur that it is named ```<prefix>.hal``` as in the ```--prefix <prefix>``` option, then manually add a checkpoint for cactus with ```touch GABBI_output/.gabbi_checkpoints/step1.1_cactus_alignment.done``` and eventually remove the failed checkpoint file with ```rm -f GABBI_output/.gabbi_checkpoints/step1.1_cactus_alignment.fail```
 
 ## Reading GABBI outputs
 
@@ -262,11 +268,17 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
 
 > The asterisk (*) means that multiple files have the same pattern.
 
-# Future directions
-- Run a species tree /gene trees easily using phylomera_v0.8.3.sh on targeted loci alignments to check the resulting phylogeny
-- Run in silico capture on simulated target capture data using art illumina, bbmap and aTRAM or PHYLUCE
-- Annotate your probe set using annotated genomes
-- Synthesize your probe set (remove redundant sequences)?
+# What to do next
+
+## Running a species tree using the final set of targeted loci
+
+## Generate your final probe set
+
+## Annotate targeted loci as coding or non-coding sequences for downstream analyses
+
+## Testing the probe set _in silico_ on whole genome sequences (WGS)
+
+
 
 ---
 # Detailed options
