@@ -26,7 +26,6 @@ while [[ $# -gt 0 ]]; do
 	--debug)                export GABBI_DEBUG=1;              shift ;;
 
 	# -- Genome alignment options ---------------------------------------
-	--cactus-slurm)         export SLURM=1;                    shift ;;
 	--cactus-maxDisk)       export CACTUS_MAXDISK="$2";        shift 2 ;;
 	--cactus-maxCores)      export CACTUS_MAXCORES="$2";       shift 2 ;;
 	--cactus-maxMemory)     export CACTUS_MAXMEM="$2";         shift 2 ;;

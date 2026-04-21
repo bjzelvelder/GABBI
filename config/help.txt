@@ -37,7 +37,6 @@
 
       Genome alignment options
       ------------------------
-      --cactus-slurm           Activate cactus --batchSystem slurm option if running on a Slurm HPC cluster [off]
       --cactus-maxDisk   INT   Increase the maximum amount of disk used by cactus, with K, M or G suffix
                                to specify Kilo, Mega or Gigabytes. [300G]
       --cactus-maxCores  INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
