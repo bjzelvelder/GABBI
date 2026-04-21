@@ -54,7 +54,7 @@ awk 'BEGIN{FS=OFS="\t"} {for(i=1;i<=NF;i++) if($i=="") $i="NA"; print}' "$table"
     [ -z "$genbank" ] && continue
 
     # Reformat genome name (replace all spaces with underscores)
-    sp_GCA="${species_name// /_}_${genbank}"
+    sp_GCA="${species_name// /_}_${genbank//./_}"
 
     if [ "$level" = "Chromosome" ]; then
         subdir="$CHR_DIR"
