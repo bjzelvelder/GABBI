@@ -26,7 +26,7 @@ To run this pipeline, all you need is the [singularity image](https://cloud.syla
     - [Running a species tree using the final set of targeted loci](#running-a-species-tree-using-the-final-set-of-targeted-loci)
     - [Generate your final probe set](#generate-your-final-probe-set)
     - [Annotate targeted loci as coding or non-coding sequences for downstream analyses](#annotate-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses)
-    - [Testing the probe set _in silico_ on whole genome sequences (WGS)](#testing-the-probe-set-in-silico-on-whole-genome-sequences)
+    - [Testing the probe set _in silico_ on whole genome sequences (WGS)](#testing-the-probe-set-in-silico-on-whole-genome-sequences-WGS)
 5. [Detailed options](#detailed-options)
 6. [Citation](#citation)
 7. [References](#references)
@@ -49,13 +49,13 @@ singularity run gabbi_v1.0.1.sif --help
 ```
 
 ## Building from 'source'
-If previous commands doesn't work or that you want make local modifications to the GABBI scripts, you can build the singularity image yourself using the definition file ```.def```. 
+If previous commands didn't work or if you want to make local modifications to the GABBI scripts, you can build the singularity image yourself using the definition file ```GABBI_v1.0.1.def```. 
 First, get GABBI files by cloning the GABBI repository with:
 ```
 git clone https://github.com/bjzelvelder/GABBI.git
 cd GABBI
 ```
-At that point, you can build the GABBI singularity image (which should take about 40 minutes) if you only want to build the image and run GABBI. You can also build a GABBI sandbox to run the pipeline interactively (for debugging purposes).
+At that point, you can build the GABBI singularity image yourself (which should take about 40 minutes). You can also build a GABBI sandbox to run the pipeline interactively (for debugging purposes).
 
 ### Building the GABBI singularity image
 Inside GABBI's repository, simply execute:
@@ -79,7 +79,7 @@ You can now run the GABBI pipeline by launching the ```main.sh``` script:
 ```
 source /opt/gabbi/main.sh --help
 ```
-Note: because of the ```set -eou pipefail``` command inside main.sh, errors might eject you from the singularity image. To avoid having to connect back to the sandbox repeatidily, run this command after sourcing ```main.sh```:
+Note: because ```main.sh``` runs ```set -eou pipefail```, errors might eject you from the singularity image. To avoid having to connect back to the sandbox repeatidily, run this command after sourcing ```main.sh```:
 ```
 set +eou pipefail
 ```
@@ -99,10 +99,10 @@ The GABBI pipeline can be segmented into 6 phases:
   <img src="/image/GABBI_pipeline.png" alt="GABBI_pipeline"/>
 </p>
 
-The goal of this pipeline is to allow anyone wishing to make a set of specific target capture baits as straightforward as possible, while still being versatile to user specifics. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (although high quality, scaffold-level genomes might work fine for our purpose), and an additionnal set of **whole-genome assemblies**. Each step of the pipeline is checkpointed to save time and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset specifics (see [detailed options](#detailed-options)).
+The goal of this pipeline is to allow anyone wishing to make a set of specific target capture baits as straightforward as possible, while still being versatile to user specifics. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (although high quality, scaffold-level genomes might work fine for our purpose), and an additionnal set of **whole-genome assemblies**. Each step of the pipeline is checkpointed to save time on re-run and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset specifics (see [detailed options](#detailed-options)).
 
 > [!IMPORTANT]
-> When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline took roughly 13 hours and 30 minutes to run in total and produced 20 Gb of data. As it is strongly paralellized, we strongly recommend giving as much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets.
+> When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline took roughly 13 hours and 30 minutes to run in total and produced 20 Gb of intermediate files. As it is strongly paralellized, we strongly recommend giving as much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets and to give access to a lot of memory.
 
 ---
 # How to use the GABBI pipeline
@@ -112,31 +112,34 @@ Once you have fetched the GABBI singularity image and succesfully ran the help c
 GABBI only requires three arguments to run: ```--chr-genomes```, ```--guide-tree```, and ```--add-genomes```. Thus, we need to [download](#downloading-ncbi-genomes) and [organize](#organizing-directory-architecture) the genomes that will be used for the probe design and provide a phylogenetic tree of the chromosome-level genomes to [guide the genomic alignment](#getting-a-guide-tree). But first, there are a few things to note on how to [choose those genomes](#choosing-representative-taxa).
 
 ### Choosing representative taxa
-Ultimately, the goal of a probe set is to efficiently hybridize with the fragmented DNA of any taxon belonging to the targeted taxonomic group. Thus, we want as much as possible that our probe sequences map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa. Historically, very few genomes were used to represent large taxonomic scales (e.g. only 6 taxa represent the 400k species of the Coleoptera UCE probe set; [Faircloth 2017](#references)), but thanks to the growing number of whole-genomes available, we can greatly improve this number. Nonetheless, here are a few things you should have in mind:
+Ultimately, the goal of a probe set is to efficiently hybridize with the fragmented DNA of any taxon belonging to the targeted taxonomic group. Thus, we want as much as possible that our probe sequences map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa. Historically, very few genomes were used to represent large taxonomic scales (e.g. only 6 taxa represent the 400k species of the Coleoptera UCE probe set; [Faircloth 2017](#references)), but thanks to the growing number of available complete genomes, we can greatly improve this number. Nonetheless, here are a few things you should have in mind:
 - Avoid the taxonomic redundancy in representative genomes. Some genus/tribe are often overrepresented among available genomes whereas entire families can be missing. Reducing the taxonomic redundancy in the genome set should prevent selected markers to appear more shared than expected.
 - Be aware that providing too many genomes can rapidly become computationnaly intensive. Further research is needed to quantify an optimum, but providing one or two taxa per taxonomic tribe should be enough to cover their genetic variation.
-- Genomic alignment should be conducted on chromosome-level (or very high quality) genomes and validated with a separate set of additional genomes. But testing the final probe set with a third set of genomes/raw data can also be useful!
+- Genomic alignments should be conducted on chromosome-level (or very high quality) genomes and validated with a separate set of additional genomes. But testing the final probe set with a third set of assembled or unassembled data can also be useful (see [What to do next?](#what-to-do-next)).
 
 With that in mind, you can check available genomes at [NCBI](https://www.ncbi.nlm.nih.gov/datasets/genome/) and play with filters and column selection to fine-tune your selection.
 
 ### Downloading NCBI genomes
-Once you have chosen the genomes you want to represent in your probe design, you can either download them manually or use the ```download_genomes_ncbi.sh``` script to download them. In this case, you must install the ```ncbi_datasets``` command-line program [here](https://www.ncbi.nlm.nih.gov/datasets/docs/v2/command-line-tools/download-and-install/). If you have conda installed, simply run:
+Once you have chosen the genomes you want to represent in your probe design, you can download them manually but I recommend you to use the ```download_genomes_ncbi.sh``` script to download and organize them automatically. To do so, you must install the ```ncbi_datasets``` command-line program [here](https://www.ncbi.nlm.nih.gov/datasets/docs/v2/command-line-tools/download-and-install/); if you have conda installed, simply run:
 ```
 conda install -c conda-forge ncbi-datasets-cli
 ```
-Then, download the NCBI table of your active selection, making sure that you have **selected the Assembly Level column** (to let the script organize genomes accordingly):
+Then, download the NCBI table of your active selection, making sure that you have **selected the Assembly Level column** (the script will separete chromosome-level and other genomes accordingly):
+
 <p align="center">
   <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="600"/>
 </p>
 
-To download genomes of your downloaded table, give it as an argument to the script:
+Then, give the NCBI table as an argument to the script that will download, rename and organize genomes depending on organism names, assembly accessions and assembly levels:
 
 ```
 ./download_genomes_ncbi.sh [path_to_ncbi_table]
 ```
 
 ### Organizing directory architecture
-As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder named after the taxon name you want to keep during the analysis. The ```download_genomes_ncbi.sh``` script should have organized your genome selection in this way, but you can obvisouly add your own genomic alignments by following the same logic (simply make sure that they have the ```.fasta``` or ```.fna``` file extension). You can also transfer chromosome level genomes to the ```additional_genomes/``` folder if you don't want them to be part of the genome alignment step (see [Choosing representative taxa](#choosing-representative-taxa).
+If you downloaded your genomes from NCBI using the ```download_genomes_ncbi.sh``` script as above, genomes should already be well organized, but you can still move some chromosome level genomes to the ```additional_genomes/``` folder if you don't want them to be part of cactus whole-genome alignment (see [Choosing representative taxa](#choosing-representative-taxa).
+
+As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder, typically named after the taxon name you want to keep during the analysis. The ```download_genomes_ncbi.sh``` script should have organized your genome selection in this way, but you can obvisouly add your own genomic alignments by following the same logic (simply make sure that they have the ```.fasta``` or ```.fna``` file extension).
 
 High quality, chromosome-level genomes are strongly recommended for cactus whole-genome alignments, so they need to be stored in a seperate folder as other genomes to be parsed through the ```--chr-level-genomes``` option. Here is how your directory architecture should look like:
 
@@ -161,7 +164,7 @@ High quality, chromosome-level genomes are strongly recommended for cactus whole
 
 For clarity, and because I avoided any taxonomic redundancy at the species level in my example dataset, I got rid of the GenBank ID suffix provided by the ```download_genomes_ncbi.sh``` script using this command:
 ```
-for i in chr_level_genomes/* additional_genomes/*; do mv $i ${i%_*} ;done
+for i in chr_level_genomes/* additional_genomes/*; do mv $i ${i%_GC*} ;done
 ```
 
 > [!NOTE]
@@ -170,9 +173,9 @@ for i in chr_level_genomes/* additional_genomes/*; do mv $i ${i%_*} ;done
 ### Getting a guide tree
 The whole-genome alignment step requires a guide tree to run. This phylogenetic tree must be provided as a **NEWICK** file with **matching taxon names** with the chromosome level genomes provided in the ```chr_level_genomes/``` folder. You can check the ```chr_level_genomes.nw``` format for reference.
 
-Because a weevil phylogeny was already available for the example dataset, I simply pruned and renamed an existing tree to only contain the taxa I provided in my dataset using [FigTree](https://github.com/rambaut/figtree).
+Because a weevil phylogeny was already available for the example dataset, I simply pruned an existing tree to only contain the taxa I provided in my dataset and renamed them to match exactly with the ```chr_level_genomes/``` subfolders names. To do so, many tools exist but you can use [FigTree](https://github.com/rambaut/figtree) or [Mesquite](https://www.mesquiteproject.org/).
 
-However, if you have no clue on how your phylogenetic tree should look like, you may try to run the [ROADIES](https://github.com/TurakhiaLab/ROADIES) pipeline to compute a fast phylogenetic tree of your dataset ([Gupta et al. 2025](#references)).
+However, If you are unsure what your phylogenetic tree should look like, you may try to run the [ROADIES](https://github.com/TurakhiaLab/ROADIES) pipeline to compute a fast phylogenetic tree from your genomic dataset ([Gupta et al. 2025](#references)).
 
 > _This feature might be added in the GABBI pipeilne in the future._
 
