@@ -34,11 +34,11 @@ else
     done \
     || checkpoint_fail "step4.1_shr_extraction"
 
-    debug "SHR loci extracted: $(find shr/ -name "*.fasta" -type f | wc -l)"
+    echo "[GABBI] SHR loci extracted: $(find shr/ -name "*.fasta" -type f | wc -l)"
 
     # Merge all per-locus FASTA into a single file
     parallel --plus -j "$THREADS" '\
-        sed -E "s/>/>{..}|/g" {} \
+        sed -E "s/>/>{/..}|/g" {} \
         ' ::: $(find shr -type f) > ${PRE}.temp.loci.fasta \
     || checkpoint_fail "step4.1_shr_extraction"
 
