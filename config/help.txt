@@ -1,15 +1,19 @@
 
-    GABBI — Genome Alignment-Based Bait Inference pipeline
+    GABBI v1.1.0 — Genome Alignment-Based Bait Inference pipeline
     ======================================================
 
-    Required arguments
+    Main arguments
     ------------------
       --chr-genomes   DIR   Directory containing chromosome-level genome assemblies to be aligned with Cactus.
-                            Each genome should reside in its own sub-directory, named <Taxon_name>
-      --guide-tree    FILE  Newick-format species tree used as a guide topology by Cactus
+                            Each genome should reside in its own sub-directory, named <Taxon_name>.
+      --guide-tree    FILE  Newick-format species tree used as a guide topology by Cactus for genome alignment.
+    OR
+      --hal           FILE  HAL Genome alignment file. If --chr-genomes is provided, sub-directory names must
+                            match with genomes names in the HAL file. Otherwise, genomes will be extracted from
+                            the HAL file.
       --add-genomes   DIR   Directory containing additional genome assemblies to validate SHR loci for final
                             probe set. Each genome should reside in its own sub-directory, named with
-                            a unique <Taxon_name> 
+                            a unique <Taxon_name>. Without this option, the pipeline will stop before phase 5.
 
     Optionnal arguments
     -------------------
@@ -42,6 +46,8 @@
       --cactus-maxCores  INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
       --cactus-maxMemory INT   Maximum amount of memory used by cactus (to avoid any issue, the higher is always
                                the better) [128G]
+      --maf-references   FILE  File containing a list of reference genomes to generate MAF files from HAL genome
+                               alignment. [all chromosome-level genomes]
       --block-size       INT   Minimum number of taxa (including ancestral genomes) required to retain
                                an alignment block [70 % of extent and ancestral genomes]
       --block-length     INT   Minimum length (nt) required to retain an alignment block [200]

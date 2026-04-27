@@ -3,7 +3,7 @@ From: ubuntu:22.04
 
 %labels
     Author      Benjamin Zelvelder
-    Version     1.0.1
+    Version     1.1.0
     Description Genome Alignment Based Bait Inference (GABBI): A fully automated probe design pipeline
                 based on whole-genome alignments for target capture phylogenomics
 
@@ -15,10 +15,10 @@ From: ubuntu:22.04
     This pipeline requires Singularity >= 3.8 or Apptainer >= 1.0
 
     To view detailed options of the GABBI pipeline, run:
-        singularity run GABBI_v1.0.1.sif --help
+        singularity run GABBI_v1.1.0.sif --help
 
     If you want to build the singularity image manually using the definition file, run:
-        singularity build --fakeroot GABBI_v1.0.1.sif GABBI_v1.0.1.def
+        singularity build --fakeroot GABBI_v1.1.0.sif GABBI_v1.1.0.def
 
     If you are using the GABBI pipeline, please cite the GABBI publication:
 	- Zelvelder et al. 202X GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... (https://doi.org/xxx)
@@ -41,17 +41,21 @@ From: ubuntu:22.04
 %environment
     export LC_ALL=C.UTF-8
     export LANG=C.UTF-8
-    export PATH=/opt/miniconda3/bin:$PATH
-    export PATH=/root/.local/bin:$PATH
-    export PATH=/opt/blast/bin:$PATH
-    export PATH=/opt/cactus/bin:$PATH
+    export PERL5LIB=/opt/perl5/lib/perl5:$PERL5LIB
+    export PATH=\
+/opt/perl5/bin:\
+/opt/gabbi/scripts:\
+/opt/ucsc_tools:\
+/opt/cactus/venv-cactus-v3.1.4/bin:\
+/opt/phast/bin:\
+/opt/maffilter/bin:\
+/opt/cactus/bin:\
+/opt/blast/bin:\
+/opt/miniconda3/bin:\
+$PATH
     export PYTHONPATH=/opt/cactus/lib:$PYTHONPATH
     export LD_LIBRARY_PATH=/opt/cactus/lib:$LD_LIBRARY_PATH
     export LD_LIBRARY_PATH=/opt/bpp/lib:$LD_LIBRARY_PATH
-    export PATH=/opt/cactus/venv-cactus-v3.1.4/bin:/opt/phast/bin:/opt/maffilter/bin:$PATH
-    export PATH=/opt/ucsc_tools:$PATH
-    export PATH=/opt/gabbi/scripts:$PATH
-    export PATH=/root/perl5/bin:$PATH
     export LG_UTILS_PATH="/opt/omm_macse/UTILS"
     export LG_MAFFT="mafft"
     export LG_MUSCLE="muscle"
@@ -188,6 +192,7 @@ EOF
     python3 -m pip install -U .
     python3 -m pip install -U -r ./toil-requirement.txt
     
+
     # -- PHAST  (phastCons, phyloFit) -------------------------------------------
     mkdir /tmp/phast
     cd /tmp/phast
@@ -203,6 +208,19 @@ EOF
     cmake --build build
     cmake --install build
 
+    # -- HmmCleaner -----------------------------------------------------------
+    apt-get install -y --no-install-recommends \
+	hmmer libssl-dev \
+	libnet-ssleay-perl libio-socket-ssl-perl \
+	libmoose-perl libmoosex-strictconstructor-perl \
+	liblist-moreutils-perl
+    mkdir -p /opt/perl5
+    export PERL5LIB=/opt/perl5/lib/perl5
+    cpanm --local-lib /opt/perl5 --force Test::Files
+    cpanm --local-lib /opt/perl5 Bio::MUST::Core
+    cpanm --local-lib /opt/perl5 Bio::MUST::Drivers
+    cpanm --local-lib /opt/perl5 --force Bio::MUST::Apps::HmmCleaner
+#    sed -i '1s|.*|#!/usr/bin/env perl|' /root/perl5/bin/HmmCleaner.pl
 
     # -- Maffilter 1.3.1 --------------------------------------------------------
     # Bio++ and eigen3
@@ -279,17 +297,6 @@ EOF
 #    # -- NCBI datasets CLI ------------------------------------------------------
 #    conda install -y -c conda-forge ncbi-datasets-cli
 
-    # -- HmmCleaner -----------------------------------------------------------
-    apt-get install -y --no-install-recommends \
-	hmmer libssl-dev \
-	libnet-ssleay-perl libio-socket-ssl-perl \
-	libmoose-perl libmoosex-strictconstructor-perl \
-	liblist-moreutils-perl
-    cpanm --force Test::Files
-    cpanm Bio::MUST::Core
-    cpanm Bio::MUST::Drivers
-    cpanm --force Bio::MUST::Apps::HmmCleaner
-    sed -i '1s|.*|#!/usr/bin/env perl|' /root/perl5/bin/HmmCleaner.pl
 
     # -- OMM_MACSE pipeline -----------------------------------------------------
     # These are fetched from OMM_MACSE_V12.02_sing_3.def

@@ -38,8 +38,8 @@ else
 
     # Merge all per-locus FASTA into a single file
     parallel --plus -j "$THREADS" '\
-        sed -E "s/>/>{..}|/g" shr/{} \
-        ' ::: $(ls shr) > ${PRE}.temp.loci.fasta \
+        sed -E "s/>/>{..}|/g" {} \
+        ' ::: $(find shr -type f) > ${PRE}.temp.loci.fasta \
     || checkpoint_fail "step4.1_shr_extraction"
 
     checkpoint_mark "step4.1_shr_extraction"
@@ -95,7 +95,7 @@ else
 	echo "[GABBI] WARNING: Unable to compute ancestral sequences on fewer than 4 taxa. Keeping clean sequences for temporary probes."
 	parallel --plus -j "$THREADS" '
 	    sed -E -e "/>/ s/>/>{/...}|/g" -e "/>/! s/[-N]//g" -e "s/\.temp\.mafft//g" {}
-	' ::: alignments/TMP.phylomera.${PRE}/FASTA/*dropped0 \
+	' ::: $(find alignments/TMP.phylomera.${PRE}/FASTA/ -type f -name "*dropped0") \
 	> ${PRE}.temp.anc.loci.fasta
 
 	echo "[GABBI] Skipping steps 4.3 and 4.4"
@@ -125,7 +125,7 @@ else
 	parallel --plus -j "$THREADS" ancestral_seq {} ::: $(find alignments/GENETREES/ -type f -name "*.phylip") \
 	    || checkpoint_fail "step4.3_ancestral_seqs"
 
-	rm -rf ancestral_seqs/*.gz
+	find ancestral_seqs/ -name "*.gz" -delete
 
 	checkpoint_mark "step4.3_ancestral_seqs"
     fi

@@ -63,12 +63,36 @@ else
     done
 
     # Symlink chromosome-level genomes already used by Cactus
-    for chr in "$GABBI_WORKDIR"/02_conserved_loci/2bit_genomes/*; do
-        base=$(basename "$chr")
-        mkdir -p add_genomes_2bit/${base/.2bit/}
-        ln -sf "$chr" add_genomes_2bit/${base/.2bit/}/ \
-            || checkpoint_fail "step5.2_add_genomes_prep"
-    done 
+    echo "[GABBI] Gathering chromosome-level genomes..."
+    if [[ -n "$CHR_GENOMES" ]]; then
+        for chr in "$CHR_GENOMES"/*; do
+            genome=$(basename "$chr")
+            mkdir -p add_genomes_2bit/${genome}
+            if [[ -f "$GABBI_WORKDIR"/02_conserved_loci/2bit_genomes/${genome}.2bit ]]; then
+                ln -sf "$GABBI_WORKDIR"/02_conserved_loci/2bit_genomes/${genome}.2bit add_genomes_2bit/${genome}/ \
+                || checkpoint_fail "step5.2_add_genomes_prep"
+            else
+                genome_fasta=$(find "$CHR_GENOMES/$genome" \( -name "*.fasta" -o -name "*.fas" -o -name "*.fna" \) -type f)
+                faToTwoBit "$genome_fasta" "add_genomes_2bit/${genome}/${genome}.2bit" \
+                || checkpoint_fail "step5.2_add_genomes_prep"
+            fi
+        done
+    else
+        for genome in $(halStats "$HAL"|awk -F"[ ,]" '$3==0{ print $1 }'); do
+            mkdir -p add_genomes_2bit/${genome}
+            if [[ -f "$GABBI_WORKDIR"/02_conserved_loci/2bit_genomes/${genome}.2bit ]]; then
+                ln -sf "$GABBI_WORKDIR"/02_conserved_loci/2bit_genomes/${genome}.2bit add_genomes_2bit/${genome}/ \
+                || checkpoint_fail "step5.2_add_genomes_prep"
+            else
+                echo "[GABBI] Getting $genome genome from $HAL..."
+                hal2fasta "$HAL" "$genome" > "add_genomes_2bit/${genome}/${genome}.fasta" \
+                || checkpoint_fail "step5.2_add_genomes_prep"
+                faToTwoBit "add_genomes_2bit/${genome}/${genome}.fasta" "add_genomes_2bit/${genome}/${genome}.2bit" \
+                || checkpoint_fail "step5.2_add_genomes_prep"
+                rm "add_genomes_2bit/${genome}/${genome}.fasta"
+            fi
+        done
+    fi
 
     checkpoint_mark "step5.2_add_genomes_prep"
 fi
@@ -95,7 +119,7 @@ else
     debug "Genome config:"
     debug "$(cat mapping/assembled_genomes.conf)"
 
-    ulimit -n 4096
+    ulimit -n 8192
 
     phyluce_probe_run_multiple_lastzs_sqlite \
         --probefile temp_probes/${PRE}.temp.anc.probes.fasta \

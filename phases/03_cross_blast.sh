@@ -9,6 +9,8 @@ source /opt/gabbi/utils/checkpoint.sh
 mkdir -p 03_cross_blast
 cd 03_cross_blast
 
+MAF_REFS="$(realpath "$GABBI_WORKDIR"/02_conserved_loci/maf_references.txt)"
+
 # ---------------------------------------------------------------------------
 # Step 3.1 — Build BLAST databases and run all-vs-all cross-BLASTn
 # ---------------------------------------------------------------------------
@@ -22,11 +24,11 @@ else
     echo "[GABBI] Step 3.1: Running cross-BLASTn between phastcons results..."
 
     mkdir -p blast_db
-    ln -s "$GABBI_WORKDIR"/02_conserved_loci/conserved_loci/*.merge.ok.fasta blast_db
+    find "$GABBI_WORKDIR"/02_conserved_loci/conserved_loci/ -type f -name "*.merge.ok.fasta" -exec ln -s {} blast_db \;
 
     parallel --plus -j $PARALLEL_JOBS \
         makeblastdb -dbtype nucl -in {} \
-        ::: blast_db/*.merge.ok.fasta \
+        ::: $(find -L blast_db/ -type f -name "*.merge.ok.fasta") \
         || checkpoint_fail "step3.1_cross_blast"
 
     mkdir -p cross_blast
@@ -34,10 +36,8 @@ else
     # To catch blast error
     set +e
 
-    for ref in "$CHR_GENOMES"/*/; do
-        ref=$(basename "$ref")
-        for query in "$CHR_GENOMES"/*/; do
-            query=$(basename "$query")
+    for ref in $(cat "$MAF_REFS"); do
+        for query in $(cat "$MAF_REFS"); do
             [[ "$query" == "$ref" ]] && continue
             debug "BLASTn: $query on $ref"
             {
