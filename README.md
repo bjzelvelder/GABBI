@@ -1,4 +1,4 @@
-# GABBI pipeline version 1.0.1
+# GABBI pipeline version 1.1.0
 
 <p align="center">
   <img width=450 src="/image/GABBI_logo.png" alt="Genome Alignment-Based Bait Inference"/>
@@ -11,7 +11,7 @@ This pipeline was designed in this publication to produce the first set of weevi
 > Zelvelder B, ... GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... doi:X
 
 # Requirements
-To run this pipeline, all you need is the [singularity image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) and a linux environment with ```apptainer``` version >= 1.0.1 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
+To run this pipeline, all you need is the [singularity image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) and a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
 
 # Table of contents
 1. [Installation](#installation)
@@ -33,44 +33,44 @@ To run this pipeline, all you need is the [singularity image](https://cloud.syla
 
 ---
 # Installation
-The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-called _singularity image_) to avoid installation issues and incompatibilities. Thus, all you need is a linux environment with ```apptainer``` version >= 1.0.1 or ```singularity``` version >= 3.0.0 installed. This software can be installed following this tutorial: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, I will always refer to ```singularity``` rather than ```apptainer``` but all commands that start with ```singularity ...``` can be spelled ```apptainer ...```. 
+The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-called _singularity image_) to avoid installation issues and incompatibilities. Thus, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.0.0 installed. This software can be installed following this tutorial: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, I will always refer to ```singularity``` rather than ```apptainer``` but all commands that start with ```singularity ...``` can be spelled ```apptainer ...```. 
 
 GABBI is distributed as a Singularity image and has no external dependencies beyond Singularity/Apptainer itself. On HPC clusters managed by SLURM, Singularity is typically available as an environment module that can be searched throught ```module search singularity``` and can be loaded with ```module load <singularity module>``` prior to execution.
 
 ## Downloading the GABBI singularity image
 Because a singularity image is too heavy to be stored and pulled from github, you will not find the ```.sif``` file in this repository. However, the [GABBI image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) is stored on the **Sylabs** remote repository and can simply be pulled with this command:
 ```
-singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.0.1
+singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.1.0
 ```
 You should then be able to see the help section with:
 ```
-singularity run-help gabbi_v1.0.1.sif
-singularity run gabbi_v1.0.1.sif --help
+singularity run-help gabbi_v1.1.0.sif
+singularity run gabbi_v1.1.0.sif --help
 ```
 
 ## Building from 'source'
-If previous commands didn't work or if you want to make local modifications to the GABBI scripts, you can build the singularity image yourself using the definition file ```GABBI_v1.0.1.def```. 
+If previous commands didn't work or if you want to make local modifications to the GABBI scripts, you can build the singularity image yourself using the definition file ```GABBI_v1.1.0.def```. 
 First, get GABBI files by cloning the GABBI repository with:
 ```
 git clone https://github.com/bjzelvelder/GABBI.git
 cd GABBI
 ```
-At that point, you can build the GABBI singularity image yourself (which should take about 40 minutes). You can also build a GABBI sandbox to run the pipeline interactively (for debugging purposes).
+At that point, you can build the GABBI singularity image yourself (which should take about 40 minutes). You can also build a GABBI sandbox to run the pipeline interactively (for verboseging purposes).
 
 ### Building the GABBI singularity image
 Inside GABBI's repository, simply execute:
 ```
-singularity build --fakeroot gabbi_v1.0.1.sif GABBI_v1.0.1.def
+singularity build --fakeroot gabbi_v1.1.0.sif GABBI_v1.1.0.def
 ```
 This will create a ```.sif``` image that can be run the same way with:
 ```
-singularity run GABBI_v1.0.1.sif --help
+singularity run GABBI_v1.1.0.sif --help
 ```
 
 ### Building a GABBI sandbox
 Alternatively, if you want to make modifications to the GABBI scripts or simply run the pipeline more interactively from within the singularity image (environment), you can make a GABBI sandbox with a writable fakeroot that will be stored in ```GABBI_sandbox/```:
 ```
-singularity build GABBI_sandbox/ GABBI_v1.0.1.def
+singularity build GABBI_sandbox/ GABBI_v1.1.0.def
 mkdir -p GABBI_sandbox/$PWD
 singularity shell -B $PWD --fakeroot --writable GABBI_sandbox/
 ```
@@ -102,35 +102,35 @@ The GABBI pipeline can be segmented into 6 phases:
 The goal of this pipeline is to allow anyone wishing to make a set of specific target capture baits as straightforward as possible, while still being versatile to user specifics. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (although high quality, scaffold-level genomes might work fine for our purpose), and an additionnal set of **whole-genome assemblies**. Each step of the pipeline is checkpointed to save time on re-run and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset specifics (see [detailed options](#detailed-options)).
 
 > [!IMPORTANT]
-> When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline took roughly 13 hours and 30 minutes to run in total and produced 20 Gb of intermediate files. As it is strongly paralellized, we strongly recommend giving as much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets and to give access to a lot of memory.
+> When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline took roughly 13 hours and 30 minutes to run in total and produced 20 Gb of intermediate files. As it is strongly paralellized, we strongly recommend giving as much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets. Some steps also require a lot of memory, so giving as much memory as possible to GABBI is also recommended (especially on HPC clusters with ressource limitations).
 
 ---
 # How to use the GABBI pipeline
-Once you have fetched the GABBI singularity image and succesfully ran the help command, GABBI is ready to run. To help you prepare input data and reading GABBI output, this section will guide you through each option in greater details using a small examplar dataset available in ```example_data```. This examplar dataset contains 4 chromosome-level genomes and 7 additional genomes of a small sample of weevils that belong to the Curculioninae subfamily (sensu 'CCCMS'; [Haran et al. 2023](#references)).
+Once you have fetched the GABBI singularity image and succesfully ran the help command, GABBI is ready to run. To help you prepare input data and reading GABBI output, this section will guide you through the pipeline in greater details using a small examplar dataset available in ```example_data```. This examplar dataset contains 4 chromosome-level genomes and 7 additional genomes of a small sample of weevils that belong to the Curculioninae subfamily (sensu 'CCCMS'; [Haran et al. 2023](#references)).
 
 ## Preparing input data
-GABBI only requires three arguments to run: ```--chr-genomes```, ```--guide-tree```, and ```--add-genomes```. Thus, we need to [download](#downloading-ncbi-genomes) and [organize](#organizing-directory-architecture) the genomes that will be used for the probe design and provide a phylogenetic tree of the chromosome-level genomes to [guide the genomic alignment](#getting-a-guide-tree). But first, there are a few things to note on how to [choose those genomes](#choosing-representative-taxa).
+The first step of the GABBI pipeline is the genome alignment with [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus). If you already have a HAL genome alignment file, you can short-circuit this step using the ```--hal``` option. Otherwise, GABBI requires two arguments: ```--chr-genomes``` and ```--guide-tree``` to run the genome alignment. In this case, we need to [download](#downloading-ncbi-genomes) and [organize](#organizing-directory-architecture) the genomes that will be used for the probe design and provide a phylogenetic tree of the chromosome-level genomes to [guide the genomic alignment](#getting-a-guide-tree). But first, there are a few things to note on how to [choose those genomes](#choosing-representative-taxa).
 
 ### Choosing representative taxa
 Ultimately, the goal of a probe set is to efficiently hybridize with the fragmented DNA of any taxon belonging to the targeted taxonomic group. Thus, we want as much as possible that our probe sequences map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa. Historically, very few genomes were used to represent large taxonomic scales (e.g. only 6 taxa represent the 400k species of the Coleoptera UCE probe set; [Faircloth 2017](#references)), but thanks to the growing number of available complete genomes, we can greatly improve this number. Nonetheless, here are a few things you should have in mind:
 - Avoid the taxonomic redundancy in representative genomes. Some genus/tribe are often overrepresented among available genomes whereas entire families can be missing. Reducing the taxonomic redundancy in the genome set should prevent selected markers to appear more shared than expected.
 - Be aware that providing too many genomes can rapidly become computationnaly intensive. Further research is needed to quantify an optimum, but providing one or two taxa per taxonomic tribe should be enough to cover their genetic variation.
-- Genomic alignments should be conducted on chromosome-level (or very high quality) genomes and validated with a separate set of additional genomes. But testing the final probe set with a third set of assembled or unassembled data can also be useful (see [What to do next?](#what-to-do-next)).
+- Genomic alignments should be conducted on chromosome-level (or very high quality) genomes and validated with a separate set of additional genomes (with ```--add-genomes``` option). But testing the final probe set with a third set of assembled or unassembled data can also be useful (see [What to do next?](#what-to-do-next)).
 
-With that in mind, you can check available genomes at [NCBI](https://www.ncbi.nlm.nih.gov/datasets/genome/) and play with filters and column selection to fine-tune your selection.
+With that in mind, you can check available genomes at [NCBI](https://www.ncbi.nlm.nih.gov/datasets/genome/) and play with filters and column selection to fine-tune your selection of **chromosome-level** and **additional genomes**.
 
 ### Downloading NCBI genomes
 Once you have chosen the genomes you want to represent in your probe design, you can download them manually but I recommend you to use the ```download_genomes_ncbi.sh``` script to download and organize them automatically. To do so, you must install the ```ncbi_datasets``` command-line program [here](https://www.ncbi.nlm.nih.gov/datasets/docs/v2/command-line-tools/download-and-install/); if you have conda installed, simply run:
 ```
 conda install -c conda-forge ncbi-datasets-cli
 ```
-Then, download the NCBI table of your active selection, making sure that you have **selected the Assembly Level column** (the script will separete chromosome-level and other genomes accordingly):
+Then, download the NCBI table of your active selection, making sure that you have **selected the "Assembly Level" column** on NCBI (the script will separete chromosome-level and other genomes accordingly):
 
 <p align="center">
   <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="600"/>
 </p>
 
-Then, give the NCBI table as an argument to the script that will download, rename and organize genomes depending on organism names, assembly accessions and assembly levels:
+Then, give your NCBI table as an argument to the script that will download, rename and organize genomes depending on organism names, assembly accessions and assembly levels:
 
 ```
 ./download_genomes_ncbi.sh [path_to_ncbi_table]
@@ -180,50 +180,63 @@ However, If you are unsure what your phylogenetic tree should look like, you may
 > _This feature might be added in the GABBI pipeilne in the future._
 
 ## Running the pipeline
-Once you have prepared your input data, you can run the GABBI pipeline. Here are a few useful command-lines you can run based on the ```example_data``` provided:
+Once you have prepared your input data, you can run the GABBI pipeline. Here are a few useful commands you can run based on the ```example_data``` provided:
 
   - Run the pipeline with minimal options and default arguments, printing logs to STDOUT:
 ```
-singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
+singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
 ```
 
 
   - Personnalize basic pipeline outputs and add a log file (RECOMMENDED):
 ```
-singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 64 --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output 2>&1 | tee -a GABBI_Curculioninae_v1.log
 ```
+> Informations outputed by GABBI only can be accessed with ```grep "\[GABBI\]" GABBI_Curculioninae_v1.log```
 
 
   - Run GABBI with increased ressources for cactus (e.g. to run on a HPC cluster):
 ```
-singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --threads 128 --debug --cactus-maxDisk 500G --cactus-maxMemory 500G \
+singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+    --threads 64 --verbose --cactus-maxDisk 500G --cactus-maxMemory 500G \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output
 ```
 > If you have access to a HPC cluster, don't hesitate to ask for a lot of memory or a specific node with big memory, as default ressources may not be enough for cactus to run without getting interrupted for memory limits.
 
-  
-  - Run the GABBI pipeline and stop before _in silico_ capture on additional genomes to check temporary probes:
+
+  - Run (or resume) GABBI on a HAL file:
 ```
-singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --threads 64 --stop-before 05_adding_genomes --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output 2>&1 |tee -a GABBI_Curculioninae_v1.log 2> /dev/null
+singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes \
+    --hal GABBI_Curculioninae_v1.hal --threads 64 --verbose \
+    --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output  2>&1 | tee -a GABBI_Curculioninae_v1.log
 ```
-> With this command, you can provide an empty ```additional_genomes/``` folder to start the GABBI pipeline and add your additional genomes later by simply running the pipeline again without the ```--stop-before``` option
+
+
+
+  - Run GABBI on a large HAL file, reducing the number of MAF references to generate:
+```
+singularity run gabbi_v1.1.0.sif --hal GABBI_Curculioninae_v1.hal \
+    --maf-references example_data/maf_references.txt --threads 64 --verbose \
+    --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output  2>&1 | tee -a GABBI_Curculioninae_v1.log
+```
+> Without the ```--add-genomes``` option, GABBI will stop before phase 05_adding_genomes and without the ```--chr-genomes``` option, chromosome-level genomes will be extracted from the HAL file. Only genomes listed in ```--maf-references``` file will be extracted. 
 
 
   - Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
 ```
-singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 80 \
+singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+    --temp-tax-threshold 100 --temp-allow-dupes 0 \
+    --shr-threshold 80 \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output 2>&1 |tee -a GABBI_Curculioninae_v2.log 
 ```
 
 
   - Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
 ```
-singularity run gabbi_v1.0.1.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
-    --temp-tax-threshold 100 --temp-allow-dupes 0 --shr-threshold 70 --restart 5.5_final_phyluce_probes \
+singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+    --temp-tax-threshold 100 --temp-allow-dupes 0 \
+    --shr-threshold 70 --restart 5.5 \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output 2>&1 |tee -a GABBI_Curculioninae_v2.log 
 ```
 
@@ -232,7 +245,7 @@ If one step fails, the pipeline stops and will restart where it failed running t
 
 >[!IMPORTANT]
 > If you don't manage to get cactus running, you may consider running it separately to fine tune cactus options or run it step by step by referring to [cactus documentation](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/progressive.md).
-> In this case, once you have your ```.hal``` file, you can copy it back in the ```GABBI_output/01_cactus_alignment/``` folder, make sur that it is named ```<prefix>.hal``` as in the ```--prefix <prefix>``` option, then manually add a checkpoint for cactus with ```touch GABBI_output/.gabbi_checkpoints/step1.1_cactus_alignment.done``` and eventually remove the failed checkpoint file with ```rm -f GABBI_output/.gabbi_checkpoints/step1.1_cactus_alignment.fail```
+> In this case, once you have your ```.hal``` file, you can resume GABBI with the ```--hal``` option. Make sur that it is named ```<prefix>.hal``` as in the ```--prefix <prefix>``` option.
 
 ## Reading GABBI outputs
 
@@ -241,7 +254,7 @@ GABBI outputs and temporary files are all stored in the ```--output-dir``` provi
 Files and statistics of interest are given through the pipeline. They can be accessed in your log file using:
 
 ```
-grep "GABBI" [log_file]
+grep "\[GABBI\]" [log_file]
 ```
 
 Here is a more detailed list of some GABBI outputs (generated on the example dataset with the default ```cactus_alignment``` prefix).
@@ -249,8 +262,8 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
   - ```cactus_input.txt```: Input file created using ```--chr-level-genomes``` content and the provided ```--guide-tree```.
   - ```cactus_alignment.hal```: Cactus whole-genome alignment.
 - ```02_conserved_loci/```
-  - ```maf/*.maf.gz```: Whole-genome alignment converted into a "Multiple Alignment Format" (MAF), using each genome as a base genome.
-  - ```maffilter/```: Each genome has its own subdirectory containing filtered blocks of alignments of each of their chromosome/scaffolds (based on ```--block-size``` and ```--block-length``` options).
+  - ```maf/```: Whole-genome alignment converted into a "Multiple Alignment Format" (MAF), using each genome as a base genome. Only logs remain to save disk space.
+  - ```maffilter/```: Each genome has its own subdirectory containing filtered blocks of alignments of each of their chromosome/scaffolds (based on ```--block-size``` and ```--block-length``` options). Only logs remain to save disk space.
   - ```conserved_loci/*.merge.fasta```: Conserved loci found by phastcons in each genome.
 - ```03_cross_blast/```
   - ```shr_clustering/cactus_alignment.shr_from_blastn.mintax3.dupes0.list```: Filtered results of the cross-BLASTn between phastcons conserved loci (based on ```--temp-tax-threshold``` and ```--temp-allow-dupes``` options).
@@ -286,17 +299,22 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
 ---
 # Detailed options
 ```
-    GABBI — Genome Alignment-Based Bait Inference pipeline
+
+    GABBI v1.1.0 — Genome Alignment-Based Bait Inference pipeline
     ======================================================
 
-    Required arguments
+    Main arguments
     ------------------
       --chr-genomes   DIR   Directory containing chromosome-level genome assemblies to be aligned with Cactus.
-                            Each genome should reside in its own sub-directory, named <Taxon_name>
-      --guide-tree    FILE  Newick-format species tree used as a guide topology by Cactus
+                            Each genome should reside in its own sub-directory, named <Taxon_name>.
+      --guide-tree    FILE  Newick-format species tree used as a guide topology by Cactus for genome alignment.
+    OR
+      --hal           FILE  HAL Genome alignment file. If --chr-genomes is provided, sub-directory names must
+                            match with genomes names in the HAL file. Otherwise, genomes will be extracted from
+                            the HAL file.
       --add-genomes   DIR   Directory containing additional genome assemblies to validate SHR loci for final
                             probe set. Each genome should reside in its own sub-directory, named with
-                            a unique <Taxon_name> 
+                            a unique <Taxon_name>. Without this option, the pipeline will stop before phase 5.
 
     Optionnal arguments
     -------------------
@@ -317,7 +335,7 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
       --stop-before   STR   Interrupt the pipeline before the given phase. Valid phases are numbered from 1 to 6:
                                     01_cactus_alignment, 02_conserved_loci, 03_cross_blast, 04_shr_extraction,
                                     05_adding_genomes, 06_final_targeted_loci [none]
-      --debug               Print additional diagnostic information to stderr during execution.
+      --verbose               Print additional diagnostic information to stderr during execution.
                             Useful for development and troubleshooting [off]
       --threads, -t   INT   Number of CPU threads to allocate [all available by nproc command]
       --help, -h            Shows this message and exits
@@ -329,6 +347,8 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
       --cactus-maxCores  INT   Maximum number of cpu used by cactus (too many might cause a cactus to crash) [32]
       --cactus-maxMemory INT   Maximum amount of memory used by cactus (to avoid any issue, the higher is always
                                the better) [128G]
+      --maf-references   FILE  File containing a list of reference genomes to generate MAF files from HAL genome
+                               alignment. [all chromosome-level genomes]
       --block-size       INT   Minimum number of taxa (including ancestral genomes) required to retain
                                an alignment block [70 % of extent and ancestral genomes]
       --block-length     INT   Minimum length (nt) required to retain an alignment block [200]
