@@ -113,11 +113,11 @@ else
         ::: $(find split_maf -type f -name "*.maf.gz") \
         || checkpoint_fail "step2.3_maffilter"
     
-    debug "$(ls maffilter/*/*.maf*|head)"
+    verbose "$(ls maffilter/*/*.maf*|head)"
     # Remove empty maf files (only two header lines) to avoid phastcons errors
     for i in $(find maffilter -type f -name "*.maf.gz");do
         if [[ $(zcat $i|wc -l) == 2 ]] ;then
-            debug "Removing empty $i file"
+            verbose "Removing empty $i file"
             rm $i
         fi
     done || checkpoint_fail "step2.3_maffilter"
@@ -212,7 +212,7 @@ else
             genome_fasta="2bit_genomes/${genome}.fasta"
         fi
 
-        debug "genome_fasta=$genome_fasta"
+        verbose "genome_fasta=$genome_fasta"
 
         faToTwoBit \
             "$genome_fasta" \
@@ -232,7 +232,7 @@ else
             --log-path phyluce_logs \
             || checkpoint_fail "step2.5_conserved_loci"
 
-        debug "Merging overlapping sequences from bed files..."
+        verbose "Merging overlapping sequences from bed files..."
         python3 /opt/gabbi/scripts/merge_overlapping_seq_in_fasta.py \
             "conserved_loci/${PRE}.${genome}.20.buff${BLOCK_LENGTH}.fasta" \
             "conserved_loci/${PRE}.${genome}.20.buff${BLOCK_LENGTH}.merge.fasta" \
@@ -240,7 +240,7 @@ else
     done
 
     for fasta in $(find conserved_loci -type f -name "*buff${BLOCK_LENGTH}.merge.fasta"); do
-        debug "Converting $fasta to one-liner FASTA..."
+        verbose "Converting $fasta to one-liner FASTA..."
         cat "$fasta" \
             | sed -e '/>/s/$/#/g' -e '/>/s/^/#/g' \
             | tr -d '\n' | tr '#' '\n' | sed '/^$/d' \

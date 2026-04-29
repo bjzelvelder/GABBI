@@ -335,7 +335,7 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
       --stop-before   STR   Interrupt the pipeline before the given phase. Valid phases are numbered from 1 to 6:
                                     01_cactus_alignment, 02_conserved_loci, 03_cross_blast, 04_shr_extraction,
                                     05_adding_genomes, 06_final_targeted_loci [none]
-      --verbose               Print additional diagnostic information to stderr during execution.
+      --verbose             Print additional diagnostic information to stderr during execution.
                             Useful for development and troubleshooting [off]
       --threads, -t   INT   Number of CPU threads to allocate [all available by nproc command]
       --help, -h            Shows this message and exits

@@ -61,7 +61,7 @@ else
 
     # Remove variation held by only one taxon (fix the AMAS trim threshold to 2 taxa out of total taxa)
     trim=$(awk -v n="$N_CHR_TAXA" 's=200/n { print int(s) }' <(echo ))
-    debug "trim=$trim"
+    verbose "trim=$trim"
 
     phylomera \
         --input shr \

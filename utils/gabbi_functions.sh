@@ -2,13 +2,13 @@
 
 # Various functions used inside the gabbi pipeline
 
-debug() {
-    if [[ "${GABBI_DEBUG:-0}" -eq 1 ]]; then
-        echo "[GABBI][DEBUG] $*" >&2
+verbose() {
+    if [[ "${GABBI_VERBOSE:-0}" -eq 1 ]]; then
+        echo "[GABBI] $*" >&2
     fi
 	return 0
 }
-export -f debug
+export -f verbose
 
 phylomera() { /opt/gabbi/scripts/phylomera*.sh "$@"; }
 export -f phylomera

@@ -56,7 +56,7 @@ else
     for genome in "$ADD_GENOMES"/*;do
         base=$(basename "$genome")
         genome_fasta=$(find "$genome" \( -name "*.fasta" -o -name "*.fas" -o -name "*.fna" \) -type f)
-        debug "faToTwoBit genome_fasta=$genome_fasta"
+        verbose "faToTwoBit genome_fasta=$genome_fasta"
         mkdir -p add_genomes_2bit/${base}
         faToTwoBit "$genome_fasta" "add_genomes_2bit/${base}/${base}.2bit" \
             || checkpoint_fail "step5.2_add_genomes_prep"
@@ -116,8 +116,8 @@ else
         echo "${base%.*}:${i}" >> mapping/assembled_genomes.conf
     done
 
-    debug "Genome config:"
-    debug "$(cat mapping/assembled_genomes.conf)"
+    verbose "Genome config:"
+    verbose "$(cat mapping/assembled_genomes.conf)"
 
     ulimit -n 8192
 
@@ -167,7 +167,7 @@ else
         | cut -f1 \
         > multifasta_table/base_taxon.txt
 
-    debug "Base taxon = $(cat multifasta_table/base_taxon.txt)"
+    verbose "Base taxon = $(cat multifasta_table/base_taxon.txt)"
 
     # Use this genome to generate the sqlite database
     phyluce_probe_get_multi_fasta_table \

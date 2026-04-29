@@ -50,7 +50,7 @@ checkpoint_restart() {
         if [[ $triggered -eq 1 ]]; then
             rm -f "$f"
             touch "${CHECKPOINT_DIR}/${step}.restart"
-            debug "Checkpoint reset: $step"
+            verbose "Checkpoint reset: $step"
         fi
     done
 }

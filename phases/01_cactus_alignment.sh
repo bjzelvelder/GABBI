@@ -28,8 +28,8 @@ else
         find "$i" -type f \( -name "*.fasta" -o -name "*.fna" -o -name "*.fas" \) -exec realpath {} \; >> cactus_genomes.paths
     done
 
-    debug "Genome paths:"
-    debug "$(cat cactus_genomes.paths)"
+    verbose "Genome paths:"
+    verbose "$(cat cactus_genomes.paths)"
 
     cat "$GUIDE_TREE" \
         <(echo) \
@@ -60,7 +60,7 @@ else
         checkpoint_fail "step1.1_cactus_alignment"
     fi
     
-    debug "Genome names = $(halStats --genomes ${PRE}.hal)"
+    verbose "Genome names = $(halStats --genomes ${PRE}.hal)"
 
     checkpoint_mark "step1.1_cactus_alignment"
 fi

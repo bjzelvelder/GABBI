@@ -24,7 +24,7 @@ while [[ $# -gt 0 ]]; do
 	-t|--threads)           export THREADS="$2";               shift 2 ;;
         --restart)              export RESTART="$2";               shift 2 ;;
 	--stop-before)          export STOP_BEFORE="$2";           shift 2 ;;
-        --debug)                export GABBI_DEBUG=1;              shift ;;
+        --verbose)              export GABBI_VERBOSE=1;              shift ;;
 
 	# -- Genome alignment options ---------------------------------------
         --cactus-maxDisk)       export CACTUS_MAXDISK="$2";        shift 2 ;;
@@ -76,7 +76,7 @@ else
     export N_CHR_TAXA=$(halStats "$HAL"|awk -F"[ ,]" '$3==0{ print $1 }'|wc -l)
 fi
 
-debug "N_CHR_TAXA = $N_CHR_TAXA"
+verbose "N_CHR_TAXA = $N_CHR_TAXA"
 
 [[ -z "${GUIDE_TREE:-}" && -z "${HAL:-}" ]] && echo "[GABBI] ERROR: --guide-tree is required. Please provide a path to a Newick-format species tree of chromosome-level genomes to provide a guide tree for Cactus." >&2 && exit 1
 [[ -n "${GUIDE_TREE:-}" && ! -f "${GUIDE_TREE:-}" ]] && echo "[GABBI] ERROR: --guide-tree '${GUIDE_TREE}' does not exist or is not a file." >&2 && exit 1
@@ -91,7 +91,7 @@ if [[ -n "${ADD_GENOMES:-}" && "$N_ADD_TAXA" -eq 0 ]];then
 fi
 [[ -n "${ADD_GENOMES:-}" && -n "$(find "${ADD_GENOMES}" -maxdepth 1 -mindepth 1 -type d -name '*.*')" ]] && echo "[GABBI] ERROR: Additional genome folders should not contain any \".\"." >&2 && exit 1
 
-debug "N_ADD_TAXA = $N_ADD_TAXA"
+verbose "N_ADD_TAXA = $N_ADD_TAXA"
 
 # -- Genome alignment options -----------------------------------------------
 [[ -n "${THREADS:-}" && ! "$THREADS" =~ ^[1-9][0-9]*$ ]] && echo "[GABBI] ERROR: --threads '${THREADS}' must be a positive integer." >&2 && exit 1
@@ -105,13 +105,13 @@ if [[ -n "${MAF_REFS:-}" ]]; then
     if [[ -z "${HAL:-}" ]] ;then 
 	if [[ $(grep -o -f "$MAF_REFS" <(ls -d "$CHR_GENOMES"/*/ 2>/dev/null) | wc -l ) -ne $(cat "$MAF_REFS"|wc -l) ]]; then
 	    echo "[GABBI] ERROR: Some genomes listed in '${MAF_REFS:-}' cannot be found in chromosome-level genomes directory." >&2
-	    debug "Matching genomes: $(grep -o -f "$MAF_REFS" <(ls -d "$CHR_GENOMES"/*/ 2>/dev/null))"
+	    verbose "Matching genomes: $(grep -o -f "$MAF_REFS" <(ls -d "$CHR_GENOMES"/*/ 2>/dev/null))"
 	    exit 1
 	fi
     else
 	if [[ $(grep -o -f "$MAF_REFS" <(halStats --genomes "$HAL") | wc -l ) -ne $(cat "$MAF_REFS"|wc -l) ]]; then
 	    echo "[GABBI] ERROR: Some genomes listed in '${MAF_REFS:-}' cannot be found in '${HAL}' genome alignment file." >&2
-	    debug "Matching genomes: $(grep -o -f "$MAF_REFS" <(halStats --genomes "$HAL"))"
+	    verbose "Matching genomes: $(grep -o -f "$MAF_REFS" <(halStats --genomes "$HAL"))"
 	    exit 1
 	fi
     fi
@@ -189,11 +189,11 @@ fi
 [[ -n "${MAF_REFS:-}" ]] && export MAF_REFS=$(realpath "$MAF_REFS")
 [[ -n "${ADD_GENOMES:-}" ]] && export ADD_GENOMES=$(realpath "$ADD_GENOMES")
 
-debug "CHR_GENOMES=${CHR_GENOMES:-}"
-debug "GUIDE_TREE=${GUIDE_TREE:-}"
-debug "HAL=${HAL:-}"
-debug "MAF_REFS=${MAF_REFS:-}"
-debug "ADD_GENOMES=${ADD_GENOMES:-}"
+verbose "CHR_GENOMES=${CHR_GENOMES:-}"
+verbose "GUIDE_TREE=${GUIDE_TREE:-}"
+verbose "HAL=${HAL:-}"
+verbose "MAF_REFS=${MAF_REFS:-}"
+verbose "ADD_GENOMES=${ADD_GENOMES:-}"
 
 export GABBI_WORKDIR=$(realpath "$GABBI_WORKDIR")
 
@@ -202,8 +202,8 @@ CORES_PER_JOB=$(( THREADS / N_CHR_TAXA ))
 export CORES_PER_JOB=$(( CORES_PER_JOB < 1 ? 1 : CORES_PER_JOB ))
 export PARALLEL_JOBS=$(( THREADS / CORES_PER_JOB ))
 
-debug "CORES_PER_JOB=$CORES_PER_JOB"
-debug "PARALLEL_JOBS=$PARALLEL_JOBS"
+verbose "CORES_PER_JOB=$CORES_PER_JOB"
+verbose "PARALLEL_JOBS=$PARALLEL_JOBS"
 
 # ---------------------------------------------------------------------------
 # Main GABBI script that sources utilities, sets arguments and default parameters and calls phases in order
@@ -226,13 +226,13 @@ cd "$GABBI_WORKDIR"
 echo "[GABBI] Working directory: $GABBI_WORKDIR"
 
 # Remove checkpoints after specified restart step
-debug "RESTART=$RESTART"
+verbose "RESTART=$RESTART"
 checkpoint_restart
 
 # Run phases sequentially
 for phase in "${GABBI_ROOT}/phases/"*.sh; do
     phase_name=$(basename "$phase" .sh)
-    debug "phase=$phase_name"
+    verbose "phase=$phase_name"
     if [[ -n "${STOP_BEFORE:-}" && "$phase_name" =~ "${STOP_BEFORE:-}" ]]; then
         echo "[GABBI] Stopping before phase '${STOP_BEFORE}' as requested."
         break

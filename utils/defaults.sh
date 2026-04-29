@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export GABBI_DEBUG="${GABBI_DEBUG:-0}"
+export GABBI_VERBOSE="${GABBI_VERBOSE:-0}"
 export PRE="${PRE:-cactus_alignment}"
 export OUT="${OUT:-GABBI_out}"
 export RESTART="${RESTART:-}"

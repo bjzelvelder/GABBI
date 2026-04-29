@@ -39,7 +39,7 @@ else
     for ref in $(cat "$MAF_REFS"); do
         for query in $(cat "$MAF_REFS"); do
             [[ "$query" == "$ref" ]] && continue
-            debug "BLASTn: $query on $ref"
+            verbose "BLASTn: $query on $ref"
             {
             blastn \
                 -db "blast_db/${PRE}.${ref}.20.buff${BLOCK_LENGTH}.merge.ok.fasta" \
@@ -108,7 +108,7 @@ else
     ' shr_clustering/${PRE}.raw_shr_from_blastn.list \
         > shr_clustering/${PRE}.raw_shr_from_blastn.stat.list
 
-    debug "Total raw SHR loci: $(wc -l < shr_clustering/${PRE}.raw_shr_from_blastn.stat.list)"
+    verbose "Total raw SHR loci: $(wc -l < shr_clustering/${PRE}.raw_shr_from_blastn.stat.list)"
 
     # Apply taxon count and duplication filters
     # Column 4: distinct taxa count; Column 5: duplicated taxa count
