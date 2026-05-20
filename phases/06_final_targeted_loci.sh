@@ -38,7 +38,11 @@ else
     parallel -j "$THREADS" " \
         cat split_loci/*__{}__* > targeted_loci/{}.fasta
     " ::: $(tail -n +4 "$GABBI_WORKDIR"/05_adding_genomes/final_phyluce_probes/${PRE}.${SHR_THRESHOLD}.conf)
-
+    
+	for i in $(find targeted_loci -type f -name "*.fasta"):do
+        mv $i ${i/uce/shr}
+	done
+	
     checkpoint_mark "step6.1_extract_targeted_loci"
 fi
 
@@ -131,7 +135,7 @@ else
             {}
     ' ::: $(find ancestral_seqs/ -type f -name "*.ok.fasta") \
     > ${PRE}.final.anc.loci.fasta
-    sed -i "s/uce-/shr-/g" ${PRE}.final.anc.loci.fasta
+    # sed -i "s/uce-/shr-/g" ${PRE}.final.anc.loci.fasta
 
     # Make a consensus for phylomera references
     mkdir -p final_consensus_loci
