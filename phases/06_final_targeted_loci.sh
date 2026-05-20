@@ -135,7 +135,6 @@ else
             {}
     ' ::: $(find ancestral_seqs/ -type f -name "*.ok.fasta") \
     > ${PRE}.final.anc.loci.fasta
-    # sed -i "s/uce-/shr-/g" ${PRE}.final.anc.loci.fasta
 
     # Make a consensus for phylomera references
     mkdir -p final_consensus_loci
@@ -150,7 +149,8 @@ else
             || checkpoint_fail "step6.4_final_targeted_loci"
     cd ..
     cat $(find final_consensus_loci/ -type f -name "*.cons") > ${PRE}.final.anc.loci.cons.fasta
-
+    sed -i "s/_mafft//g" ${PRE}.final.anc.loci.cons.fasta
+	
     echo "[GABBI] Final number of targeted loci: $(grep -c ">" ${PRE}.final.anc.loci.cons.fasta)"
 
     checkpoint_mark "step6.4_final_targeted_loci"
