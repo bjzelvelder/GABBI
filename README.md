@@ -8,7 +8,7 @@
 GABBI-derived probe sets are expected to target more variable loci than usual probe design methods that rely on a base genome to map reads, providing more sensitive and phylogenetically resolutive data.
 
 This pipeline was designed in this publication to produce the first set of weevil-specific probes. If you use GABBI, please cite:
-> Zelvelder B, ... GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... doi:X
+> B. Zelvelder, L. Benoit, A. Loiseau, J. Haran, R. Allio (2026) A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea); bioRxiv 2026.05.09.724036; doi: [https://doi.org/10.64898/2026.05.09.724036](https://doi.org/10.64898/2026.05.09.724036)
 
 # Requirements
 To run this pipeline, all you need is the [singularity image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) and a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
@@ -86,7 +86,7 @@ set +eou pipefail
 ```
 ---
 # Pipeline overview
-The GABBI pipeline is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**. As opposed to other commonly used methods of probe design, GABBI doesn't rely on a **base taxon**. The final set of targeted loci tend to be more variable than ultraconserved elements (UCE) and are referred to as shared homologous regions (SHR). Further details on the context and signficance of this new probe design method can be accessed through the publication that features the GABBI pipeline ([Zelvelder et al. 202X](#citation)).
+The GABBI pipeline is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**. As opposed to other commonly used methods of probe design, GABBI doesn't rely on a **base taxon**. The final set of targeted loci tend to be more variable than ultraconserved elements (UCE) and are referred to as shared homologous regions (SHR). Further details on the context and signficance of this new probe design method can be accessed through the publication that features the GABBI pipeline ([Zelvelder et al. 2026 pre-print](#citation)).
 
 The GABBI pipeline can be segmented into 6 phases:
   - **1)** Aligning chromosome-level genomes using [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus) ([Armstrong et al. 2020](#references))
@@ -287,7 +287,7 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
 
 # What to do next
 
-Once GABBI finished running, you should find a file containing all **targeted loci** from all references listed in the ```--chr-genomes``` directory or ```--hal``` file, in the ```--add-genomes``` directory and their encestral sequences (named "NodeX") in ```your_GABBI_output/06_final_targeted_loci/cactus_alignment.final.anc.loci.fasta```. Note that this file **does not** contain probes (or baits), you are free to design them on your own or ask your bait synthesizer company to generate them from your targeted loci file. _Although this feature might be added in the GABBI pipeilne in the future._
+Once GABBI finished running, you should find a file containing all **targeted loci** from all genomic references, i.e. genomes listed in the ```--chr-genomes``` directory or ```--maf-references``` file supplied, genomes listed in the ```--add-genomes``` directory, and there ancestral sequences (named "Node#") in ```your_GABBI_output/06_final_targeted_loci/prefix.final.anc.loci.fasta```. Note that this file **does not** contain probes (or baits): you are free to design them on your own or ask your bait synthesizer company to generate them from your targeted loci file. _Although this feature might be added in the GABBI pipeilne in the future._
 
 From now on, you may want to: [tweak GABBI conservation thresholds](#tweak-gabbi-conservation-thresholds) to target more or less loci, check if your probe set actually works by running a [phylogeny of the final set of targeted loci](#run-a-species-tree-using-the-final-set-of-targeted-loci), [generate your final probe set](#generate-your-final-probe-set), [annotate targeted loci as coding or non-coding sequences for downstream analyses](#annotate-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses) and/or [test the probe set _in silico_ on simulated data from whole genome sequences (WGS)](#testing-the-probe-set-in-silico-on-whole-genome-sequences-WGS).
 
@@ -295,10 +295,10 @@ Suggestions on how you may proceed for each of these steps are detailed below.
 
 ## Tweak GABBI conservation thresholds
 
-As you may have noticed during the execution of the GABBI pipeline, the default conservation score to keep a locus in the final set of targeted loci is **90%**, meaning that all loci that cannot be found in at least 90% of taxa won't be targeted by your probe set. Even if this threshold is very stringent, it allowed us to keep 4,255 loci for weevils in the [GABBI paper](#citation). But if this threshold reduces the number of targeted loci too sharply in your dataset and you want to target more loci, at the cost of being less conservative, you can restart this step by adding the ```restart 5.5``` option and changing the ```--shr-threshold``` option using the same command-line (checkpoints will be detected automatically, see [example commands above](#running-the-pipeline)).
+As you may have noticed during the execution of the GABBI pipeline, the default conservation score to keep a locus in the final set of targeted loci is **90%**, meaning that all loci that cannot be found in at least 90% of taxa won't be targeted by your probe set. Even if this threshold is very stringent, it allowed us to keep 4,255 loci for weevils in the [GABBI paper](#citation). But if this threshold reduces the number of targeted loci too sharply in your dataset and you want to target more loci, at the cost of being less conservative, you can restart this step by adding the ```--restart 5.5``` option and changing the ```--shr-threshold``` option using the same command-line (checkpoints will be detected automatically, see [example commands above](#running-the-pipeline)).
 
 >[!IMPORTANT]
-> Previous results will be deleted, so if you want to save multiple sets of targeted loci based on different thresholds and [run multiple trees](#run-a-species-tree-using-the-final-set-of-targeted-loci) to compare them, save the ```06_final_targeted_loci``` directory by copying it out of GABBI's output.
+> Previous results will be deleted, so if you want to save multiple sets of targeted loci based on different thresholds and [run multiple trees](#run-a-species-tree-using-the-final-set-of-targeted-loci) to compare them, save the ```06_final_targeted_loci``` directory by moving it out of GABBI's output.
 
 ## Run a species tree using the final set of targeted loci
 
@@ -388,7 +388,7 @@ As you may have noticed during the execution of the GABBI pipeline, the default 
 
 # Citation
 If you used the **GABBI** pipeline, please cite:
-> Zelvelder B, ... GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... doi:X
+> B. Zelvelder, L. Benoit, A. Loiseau, J. Haran, R. Allio (2026) A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea); bioRxiv 2026.05.09.724036; doi: [https://doi.org/10.64898/2026.05.09.724036](https://doi.org/10.64898/2026.05.09.724036)
 
 # References
 References cited on this page:
