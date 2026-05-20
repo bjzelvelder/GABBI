@@ -302,9 +302,20 @@ As you may have noticed during the execution of the GABBI pipeline, the default 
 
 ## Run a species tree using the final set of targeted loci
 
+All targeted loci reduced to one multi-fasta file per marker can be found in ```GABBI_output/06_final_targeted_loci/targeted_loci```. We can align and clean those markers to build a supermatrix and run a concatenated phylogenomic analysis of the data that produced our probe set. Keep in mind that this analysis is done on targeted loci only and doesn't have flanking data. To run _in silico_ tests of the probe set simulating real capture data with reads and potential flanking regions, please refer to [Test the probe set _in silico_ on whole genome sequences](#test-the-probe-set-in-silico-on-whole-genome-sequences) section.
 
+GABBI has a built-in tool that I also designed to make such phylogenomic analysis straightforward, called **_Phylomera_**. We simply run _Phylomera_ through the singularity image, giving all targeted loci as input and asking for a species tree with the model of your choice. Here I use MFP+MERGE to minimize biaises that can result from over-partitionning our dataset.
+
+```
+singularity exec GABBI_v1.1.0.sif phylomera_v0.8.3.sh --config /opt/gabbi/config/phylomera.conf --input GABBI_output/06_final_targeted_loci/targeted_loci/ --output GABBI_output/06_final_targeted_loci/final_tree --prefix GABBI_Chryso_10IV2026 --threads 64 --sptree MFP+MERGE --perc 70 --continue
+```
+> You can refer to _Phylomera_ ```--help``` section to fin tune your parameters.
+
+Once it finished running, you will find the IQ-TREE output files in ```GABBI_output/06_final_targeted_loci/final_tree/TREES```.
 
 ## Generate your final probe set
+
+
 
 ## Annotate targeted loci as coding or non-coding sequences for downstream analyses
 
