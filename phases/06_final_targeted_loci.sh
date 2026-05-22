@@ -145,7 +145,7 @@ else
     done || checkpoint_fail "step6.4_final_targeted_loci"
 
     cd final_consensus_loci/
-        Rscript /opt/gabbi/scripts/make_consensus_from_mafft_v2.R all iupac 1 \
+        Rscript /opt/gabbi/scripts/make_consensus_from_mafft_v3.R all iupac 1 \
             || checkpoint_fail "step6.4_final_targeted_loci"
     cd ..
     cat $(find final_consensus_loci/ -type f -name "*.cons") > ${PRE}.final.anc.loci.cons.fasta

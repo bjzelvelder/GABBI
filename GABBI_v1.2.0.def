@@ -3,7 +3,7 @@ From: ubuntu:22.04
 
 %labels
     Author      Benjamin Zelvelder
-    Version     1.1.0
+    Version     1.2.0
     Description Genome Alignment Based Bait Inference (GABBI): A fully automated probe design pipeline
                 based on whole-genome alignments for target capture phylogenomics
 
@@ -15,13 +15,13 @@ From: ubuntu:22.04
     This pipeline requires Singularity >= 3.8 or Apptainer >= 1.0
 
     To view detailed options of the GABBI pipeline, run:
-        singularity run GABBI_v1.1.0.sif --help
+        singularity run GABBI_v1.2.0.sif --help
 
     If you want to build the singularity image manually using the definition file, run:
-        singularity build --fakeroot GABBI_v1.1.0.sif GABBI_v1.1.0.def
+        singularity build --fakeroot GABBI_v1.2.0.sif GABBI_v1.2.0.def
 
     If you are using the GABBI pipeline, please cite the GABBI publication:
-	- Zelvelder et al. 202X GABBI: A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea), ... (https://doi.org/xxx)
+	- B. Zelvelder, L. Benoit, A. Loiseau, J. Haran, R. Allio (2026) A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea). bioRxiv 2026.05.09.724036. (https://doi.org/10.64898/2026.05.09.724036)
 
     And tools used by the GABBI pipeline:
 	- AMAS: Borowiec ML. 2016 AMAS: a fast tool for alignment manipulation and computing of summary statistics. PeerJ 4, e1660. (https://doi.org/10.7717/peerj.1660)
@@ -51,6 +51,7 @@ From: ubuntu:22.04
 /opt/maffilter/bin:\
 /opt/cactus/bin:\
 /opt/blast/bin:\
+/opt/bbmap:\
 /opt/miniconda3/bin:\
 $PATH
     export PYTHONPATH=/opt/cactus/lib:$PYTHONPATH
@@ -90,7 +91,12 @@ $PATH
     scripts/remove_flank.py                   /opt/gabbi/scripts/remove_flank.py
     scripts/phylomera_v0.8.3.sh               /opt/gabbi/scripts/phylomera_v0.8.3.sh
     scripts/merge_overlapping_seq_in_fasta.py /opt/gabbi/scripts/merge_overlapping_seq_in_fasta.py
-    scripts/make_consensus_from_mafft_v2.R    /opt/gabbi/scripts/make_consensus_from_mafft_v2.R
+    scripts/make_consensus_from_mafft_v3.R    /opt/gabbi/scripts/make_consensus_from_mafft_v3.R
+    scripts/download_genomes_ncbi.sh          /opt/gabbi/scripts/download_genomes_ncbi.sh
+    scripts/split_fasta.py                    /opt/gabbi/scripts/split_fasta.py
+    scripts/run_BBMap.sh                      /opt/gabbi/scripts/run_BBMap.sh
+    scripts/atram_blast.py                    /opt/gabbi/scripts/atram_blast.py
+    scripts/atram_spades.py                   /opt/gabbi/scripts/atram_spades.py
 
 %post -c bash
     # ===========================================================================
@@ -107,10 +113,8 @@ $PATH
 	bzip2 rsync \
         libpcre3-dev libblas-dev liblapack-dev \
         cpanminus \
-        openjdk-8-jre
-        # muscle=1:3.8.31+dfsg-1 for macse
-        # hmmer=3.1b2-2 for macse
-        # mafft=7.271-1 for macse
+        openjdk-8-jre \
+        jq
     
     export DEBIAN_FRONTEND=noninteractive
 
@@ -278,11 +282,11 @@ EOF
     # -- IQ-TREE 3.0.1 ----------------------------------------------------------
     conda install -y bioconda::iqtree==3.0.1
 
-#    # -- BBMap (Sept 2022) ------------------------------------------------------
-#    cd /opt
-#    wget https://sourceforge.net/projects/bbmap/files/BBMap_39.77.tar.gz
-#    tar -xzf BBMap_39.77.tar.gz
-#    rm BBMap_39.77.tar.gz
+    # -- BBMap (Sept 2022) ------------------------------------------------------
+    cd /opt
+    wget https://sourceforge.net/projects/bbmap/files/BBMap_39.77.tar.gz
+    tar -xzf BBMap_39.77.tar.gz
+    rm BBMap_39.77.tar.gz
 
     # -- SeqKit 2.9.0 -----------------------------------------------------------
     conda install -y -c bioconda seqkit
@@ -294,9 +298,8 @@ EOF
     # -- MAFFT ------------------------------------------------------------------
     conda install -y conda-forge::mafft
 
-#    # -- NCBI datasets CLI ------------------------------------------------------
-#    conda install -y -c conda-forge ncbi-datasets-cli
-
+    # -- NCBI datasets CLI ------------------------------------------------------
+    conda install -y -c conda-forge ncbi-datasets-cli
 
     # -- OMM_MACSE pipeline -----------------------------------------------------
     # These are fetched from OMM_MACSE_V12.02_sing_3.def
@@ -318,16 +321,48 @@ EOF
     rm -rf /opt/omm_macse/OMM_MACSE/examples
     rm -rf /tmp/MACSE_V2_PIPELINES
 
-    # -- Other Phylomera dependencies -------------------------------------------
+    # -- aTRAM ------------------------------------------------------------------
+    # Adapted script, cf: https://github.com/juliema/aTRAM/issues/321
+
+    conda config --add channels defaults
+    conda config --add channels bioconda
+    conda config --add channels conda-forge
+
+    git clone https://github.com/juliema/aTRAM.git /opt/atram
+    sed -i '/juliema\/aTRAM/d' /opt/atram/environment.yml
+    source /opt/miniconda3/etc/profile.d/conda.sh
+
+    conda tos accept
+    conda env create -n aTRAM -f /opt/atram/environment.yml
+
+    /opt/miniconda3/envs/aTRAM/bin/pip install --no-cache-dir '/opt/atram[complete]'
+
+    # Check aTRAM dependencies
+    /opt/miniconda3/envs/aTRAM/bin/python -c "import Bio, psutil; print('aTRAM deps OK')"
+
+    conda clean --tarballs -y
+
+    # Apply changes to blast.py and spades.py
+    for pydir in /opt/miniconda3/envs/aTRAM/lib/python3.*/site-packages/lib; do
+        [ -d "$pydir" ] || continue
+        cp /opt/gabbi/scripts/atram_blast.py "$pydir/blast.py"
+        [ -d "$pydir/assemblers" ] && cp /opt/gabbi/scripts/atram_spades.py "$pydir/assemblers/spades.py"
+    done
+
+    # --- Other Phylomera dependencies ------------------------------------------
     conda install bioconda::seqkit
     python3 -m pip install -U amas
 
-    # Make all tools executable
+    # --- Make all tools executable ---------------------------------------------
     find /opt/gabbi \( -name "*.sh" -o -name "*.py" \) -exec chmod 755 {} \;
-    chmod 755 /opt/ucsc_tools/faToTwoBit
-    chmod 755 /opt/omm_macse/OMM_MACSE/*.sh
-    chmod -R 755 /opt/omm_macse/UTILS/LGS_Fasta/*.sh
-    chmod 755 /opt/miniconda3/lib/python3.13/site-packages/amas/AMAS.py
+    chmod 777 /opt/ucsc_tools/faToTwoBit
+    chmod 777 /opt/omm_macse/OMM_MACSE/*.sh
+    chmod -R 777 /opt/omm_macse/UTILS/LGS_Fasta/*.sh
+    chmod 777 /opt/miniconda3/lib/python3.13/site-packages/amas/AMAS.py
+    chmod -R 777 /opt/atram
+    chmod -R 777 /opt/miniconda3/envs/aTRAM/bin
+    find /opt/miniconda3/envs/aTRAM/lib/python3.*/site-packages/lib \
+        -name "*.py" -exec chmod 755 {} \; 2>/dev/null || true
 
 %runscript
     #!/usr/bin/env bash

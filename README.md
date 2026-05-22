@@ -1,4 +1,4 @@
-# GABBI pipeline version 1.1.0
+# GABBI pipeline version 1.2.0
 
 <p align="center">
   <img width=450 src="/image/GABBI_logo.png" alt="Genome Alignment-Based Bait Inference"/>
@@ -41,16 +41,16 @@ GABBI is distributed as a Singularity image and has no external dependencies bey
 ## Downloading the GABBI singularity image
 Because a singularity image is too heavy to be stored and pulled from github, you will not find the ```.sif``` file in this repository. However, the [GABBI image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) is stored on the **Sylabs** remote repository and can simply be pulled with this command:
 ```
-singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.1.0
+singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.2.0
 ```
 You should then be able to see the help section with:
 ```
-singularity run-help gabbi_v1.1.0.sif
-singularity run gabbi_v1.1.0.sif --help
+singularity run-help gabbi_v1.2.0.sif
+singularity run gabbi_v1.2.0.sif --help
 ```
 
 ## Building from 'source'
-If previous commands didn't work or if you want to make local modifications to the GABBI scripts, you can build the singularity image yourself using the definition file ```GABBI_v1.1.0.def```. 
+If previous commands didn't work or if you want to make local modifications to the GABBI scripts, you can build the singularity image yourself using the definition file ```GABBI_v1.2.0.def```. 
 First, get GABBI files by cloning the GABBI repository with:
 ```
 git clone https://github.com/bjzelvelder/GABBI.git
@@ -61,17 +61,17 @@ At that point, you can build the GABBI singularity image yourself (which should 
 ### Building the GABBI singularity image
 Inside GABBI's repository, simply execute:
 ```
-singularity build --fakeroot gabbi_v1.1.0.sif GABBI_v1.1.0.def
+singularity build --fakeroot gabbi_v1.2.0.sif GABBI_v1.2.0.def
 ```
 This will create a ```.sif``` image that can be run the same way with:
 ```
-singularity run GABBI_v1.1.0.sif --help
+singularity run GABBI_v1.2.0.sif --help
 ```
 
 ### Building a GABBI sandbox
 Alternatively, if you want to make modifications to the GABBI scripts or simply run the pipeline more interactively from within the singularity image (environment), you can make a GABBI sandbox with a writable fakeroot that will be stored in ```GABBI_sandbox/```:
 ```
-singularity build GABBI_sandbox/ GABBI_v1.1.0.def
+singularity build GABBI_sandbox/ GABBI_v1.2.0.def
 mkdir -p GABBI_sandbox/$PWD
 singularity shell -B $PWD --fakeroot --writable GABBI_sandbox/
 ```
@@ -185,13 +185,13 @@ Once you have prepared your input data, you can run the GABBI pipeline. Here are
 
   - Run the pipeline with minimal options and default arguments, printing logs to STDOUT:
 ```
-singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
+singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
 ```
 
 
   - Personnalize basic pipeline outputs and add a log file (RECOMMENDED):
 ```
-singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 64 --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output 2>&1 | tee -a GABBI_Curculioninae_v1.log
 ```
 > Informations outputed by GABBI only can be accessed with ```grep "\[GABBI\]" GABBI_Curculioninae_v1.log```
@@ -199,7 +199,7 @@ singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes a
 
   - Run GABBI with increased ressources for cactus (e.g. to run on a HPC cluster):
 ```
-singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 64 --verbose --cactus-maxDisk 500G --cactus-maxMemory 500G \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output
 ```
@@ -208,7 +208,7 @@ singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes a
 
   - Run (or resume) GABBI on a HAL file:
 ```
-singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes \
+singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes \
     --hal GABBI_Curculioninae_v1.hal --threads 64 --verbose \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output  2>&1 | tee -a GABBI_Curculioninae_v1.log
 ```
@@ -217,7 +217,7 @@ singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes a
 
   - Run GABBI on a large HAL file, reducing the number of MAF references to generate:
 ```
-singularity run gabbi_v1.1.0.sif --hal GABBI_Curculioninae_v1.hal \
+singularity run gabbi_v1.2.0.sif --hal GABBI_Curculioninae_v1.hal \
     --maf-references example_data/maf_references.txt --threads 64 --verbose \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output  2>&1 | tee -a GABBI_Curculioninae_v1.log
 ```
@@ -226,7 +226,7 @@ singularity run gabbi_v1.1.0.sif --hal GABBI_Curculioninae_v1.hal \
 
   - Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
 ```
-singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 \
     --shr-threshold 80 \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output 2>&1 |tee -a GABBI_Curculioninae_v2.log 
@@ -235,7 +235,7 @@ singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes a
 
   - Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
 ```
-singularity run gabbi_v1.1.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
+singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 \
     --shr-threshold 70 --restart 5.5 \
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output 2>&1 |tee -a GABBI_Curculioninae_v2.log 
@@ -307,7 +307,7 @@ All targeted loci reduced to one multi-fasta file per marker can be found in ```
 GABBI has a built-in tool that I also designed to make such phylogenomic analysis straightforward, called **_Phylomera_**. We simply run _Phylomera_ through the singularity image, giving all targeted loci as input and asking for a species tree with the model of your choice. Here I use MFP+MERGE to minimize biaises that can result from over-partitionning our dataset.
 
 ```
-singularity exec GABBI_v1.1.0.sif phylomera_v0.8.3.sh \
+singularity exec GABBI_v1.2.0.sif phylomera_v0.8.3.sh \
     --config /opt/gabbi/config/phylomera.conf \
     --input GABBI_output/06_final_targeted_loci/targeted_loci/  \
     --output GABBI_output/06_final_targeted_loci/final_tree  \
@@ -351,7 +351,7 @@ run_BBMap.sh xxx
 Reads are now ready to be processed by aTRAM. I [slightly adjusted](https://github.com/juliema/aTRAM/issues/321) aTRAM scripts to process target capture data more efficiently on Spades 4.2.0 ([Prjibelski et al. 2020](#references)). Those changes are included in the GABBI singularity image as well. We first need to generate the databses for aTRAM to work with using the ```atram_preprocessor.py``` script.
 
 ```
-singularity exec GABBI_v1.1.0.sif /opt/aTRAM/atram_preprocessor.py xxx
+singularity exec GABBI_v1.2.0.sif /opt/aTRAM/atram_preprocessor.py xxx
 ```
 
 The ```aTRAM_db``` folder contains all we need to run aTRAM, but we can prepare the probe set to parallelize the process and optimise computation time. The goal is to assemble reads iteratively using each probe sequence as a reference. Although this approach can be kind of overkill, it allows us to get multiple assemblies per marker, which offers some notion of coverage to evaluate duplicate sequences, contaminations and postprocess assemblies accordingly. The following commands apply to a HPC cluster with 500 CPUs available per user, but you can adjust them to your own ressources. The goal is to split the probe file into 500 files that will be processed each on one CPU, reducing the number of assemblies per CPU.
@@ -359,7 +359,7 @@ The ```aTRAM_db``` folder contains all we need to run aTRAM, but we can prepare 
 ```
 split fasta
 refseq files
-parallel -j xx singularity exec GABBI_v1.1.0.sif /opt/aTRAM/atram.py xxx
+parallel -j xx singularity exec GABBI_v1.2.0.sif /opt/aTRAM/atram.py xxx
 ```
 
 aTRAM results are stored in each individual's subfolder (i.e. ```capture/Polydrusus_cervinus/aTRAM/```), including ```*all_contigs*``` and ```*filtered*``` files that respectively correspond to all spades assemblies, and assemblies blasted back to the reference to remove outliers. For each individual, we will be merging filtered assemblies from each marker in another subfolder ```capture/Polydrusus_cervinus/cons```:
@@ -402,7 +402,7 @@ phylomera
 # Detailed options
 ```
 
-    GABBI v1.1.0 — Genome Alignment-Based Bait Inference pipeline
+    GABBI v1.2.0 — Genome Alignment-Based Bait Inference pipeline
     ======================================================
 
     Main arguments
