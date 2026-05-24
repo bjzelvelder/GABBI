@@ -100,7 +100,7 @@ The GABBI pipeline can be segmented into 6 phases:
   <img src="/image/GABBI_pipeline.png" alt="GABBI_pipeline"/>
 </p>
 
-The goal of this pipeline is to allow anyone wishing to make a set of specific target capture baits as straightforward as possible, while still being versatile to user specifics. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (although high quality, scaffold-level genomes might work fine for our purpose), and an additionnal set of **whole-genome assemblies**. Each step of the pipeline is checkpointed to save time on re-run and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset specifics (see [detailed options](#detailed-options)).
+The goal of this pipeline is to make the design of specific target-capture bait sets as straightforward as possible for any user, while remaining flexible enough to accommodate user-specific requirements. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (although high quality, scaffold-level genomes might work fine for our purpose), and an additionnal set of **whole-genome assemblies**. Alternatively, you can also run this pipeline with a genome alignment file (HAL). Each step of the pipeline is checkpointed to save time on re-run and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset's specifics (see [detailed options](#detailed-options)).
 
 > [!IMPORTANT]
 > When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline took roughly 13 hours and 30 minutes to run in total and produced 20 Gb of intermediate files. As it is strongly paralellized, we strongly recommend giving as much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets. Some steps also require a lot of memory, so giving as much memory as possible to GABBI is also recommended (especially on HPC clusters with ressource limitations).
@@ -125,7 +125,7 @@ Once you have chosen the genomes you want to represent in your probe design, you
 ```
 conda install -c conda-forge ncbi-datasets-cli
 ```
-Then, download the NCBI table of your active selection, making sure that you have **selected the "Assembly Level" column** on NCBI (the script will separete chromosome-level and other genomes accordingly):
+Then, download the NCBI table of your active selection, making sure that you have **selected the "Assembly Level" column** on NCBI (the script will separate chromosome-level and other genomes accordingly):
 
 <p align="center">
   <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="600"/>
@@ -142,7 +142,7 @@ If you downloaded your genomes from NCBI using the ```download_genomes_ncbi.sh``
 
 As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder, typically named after the taxon name you want to keep during the analysis. The ```download_genomes_ncbi.sh``` script should have organized your genome selection in this way, but you can obvisouly add your own genomic alignments by following the same logic (simply make sure that they have the ```.fasta``` or ```.fna``` file extension).
 
-High quality, chromosome-level genomes are strongly recommended for cactus whole-genome alignments, so they need to be stored in a seperate folder as other genomes to be parsed through the ```--chr-level-genomes``` option. Here is how your directory architecture should look like:
+High quality, chromosome-level genomes are strongly recommended for cactus whole-genome alignments, so they need to be stored in a separate folder as other genomes to be parsed through the ```--chr-level-genomes``` option. Here is how your directory architecture should look like:
 
 ```
 +--- chr_level_genomes/
@@ -252,7 +252,7 @@ If one step fails, the pipeline stops and will restart where it failed running t
 
 GABBI outputs and temporary files are all stored in the ```--output-dir``` provided or in ```GABBI_output/``` by default. They are organized so that each phase of the pipeline has its own subdirectory named after the phase name (e.g. 01_cactus_alignment, 02_conserved_loci etc.).
 
-Files and statistics of interest are given through the pipeline. They can be accessed in your log file using:
+Files and statistics of interest are given through the pipeline. They can be accessed in the log file using:
 
 ```
 grep "\[GABBI\]" [log_file]
@@ -317,7 +317,7 @@ singularity exec GABBI_v1.2.0.sif phylomera_v0.8.3.sh \
     --perc 70  \
     --continue
 ```
-> You can refer to _Phylomera_ ```--help``` section to fin tune your parameters.
+> Please refer to _Phylomera_ ```--help``` section to fine-tune your parameters.
 
 Once it finished running, you will find the IQ-TREE output files in ```GABBI_output/06_final_targeted_loci/final_tree/TREES```.
 
@@ -333,7 +333,7 @@ In order to improve downstream phylogenomic inferences, we also annotated our se
 
 ## Test the probe set _in silico_ on whole genome sequences
 
-Lastly, we want to test our probe set on simulated target capture data. To do so, any whole genome sequences (WGS) can be used to get a bigger dataset than the one used to deign the probes. Multiple approaches have been proposed in the literature to do just that and you are free to choe your own (e.g. [PHYLUCE]](#references), [HybPiper]](#references), [IBA]](#references)). In this section, I will detail the approach I used in the [GABBI paper](#citation) using aTRAM [Allen et al. 2015](#references).
+Lastly, we want to test our probe set on simulated target capture data. To do so, any whole genome sequences (WGS) can be used to get a bigger dataset than the one used to deign the probes. Multiple approaches have been proposed in the literature, allowing users to choose the method best suited to their needs (e.g. [PHYLUCE]](#references), [HybPiper]](#references), [IBA]](#references)). In this section, I will detail the approach I used in the [GABBI paper](#citation) using aTRAM [Allen et al. 2015](#references).
 
 First of all, we need to get raw read data, either from real WGS data or simulating from an assembled genome. In the latter case, we can use ART Illumina ([Huang et al. 2012](#references)) with default options:
 
@@ -348,10 +348,10 @@ bbmap.sh ref xxx
 run_BBMap.sh xxx
 ```
 
-Reads are now ready to be processed by aTRAM. I [slightly adjusted](https://github.com/juliema/aTRAM/issues/321) aTRAM scripts to process target capture data more efficiently on Spades 4.2.0 ([Prjibelski et al. 2020](#references)). Those changes are included in the GABBI singularity image as well. We first need to generate the databses for aTRAM to work with using the ```atram_preprocessor.py``` script.
+Reads are now ready to be processed by aTRAM. I [slightly adjusted](https://github.com/juliema/aTRAM/issues/321) aTRAM scripts to process target capture data more efficiently on Spades 4.2.0 ([Prjibelski et al. 2020](#references)). Those changes are included in the GABBI singularity image as well. We first need to generate the databases for aTRAM to work with using the ```atram_preprocessor.py``` script.
 
 ```
-singularity exec GABBI_v1.2.0.sif /opt/aTRAM/atram_preprocessor.py xxx
+singularity exec GABBI_v1.2.0.sif /opt/atram/atram_preprocessor.py xxx
 ```
 
 The ```aTRAM_db``` folder contains all we need to run aTRAM, but we can prepare the probe set to parallelize the process and optimise computation time. The goal is to assemble reads iteratively using each probe sequence as a reference. Although this approach can be kind of overkill, it allows us to get multiple assemblies per marker, which offers some notion of coverage to evaluate duplicate sequences, contaminations and postprocess assemblies accordingly. The following commands apply to a HPC cluster with 500 CPUs available per user, but you can adjust them to your own ressources. The goal is to split the probe file into 500 files that will be processed each on one CPU, reducing the number of assemblies per CPU.
@@ -359,7 +359,7 @@ The ```aTRAM_db``` folder contains all we need to run aTRAM, but we can prepare 
 ```
 split fasta
 refseq files
-parallel -j xx singularity exec GABBI_v1.2.0.sif /opt/aTRAM/atram.py xxx
+parallel -j xx singularity exec GABBI_v1.2.0.sif /opt/atram/atram.py xxx
 ```
 
 aTRAM results are stored in each individual's subfolder (i.e. ```capture/Polydrusus_cervinus/aTRAM/```), including ```*all_contigs*``` and ```*filtered*``` files that respectively correspond to all spades assemblies, and assemblies blasted back to the reference to remove outliers. For each individual, we will be merging filtered assemblies from each marker in another subfolder ```capture/Polydrusus_cervinus/cons```:
@@ -370,12 +370,14 @@ regroup_uce
 
 Then, we want to compute pairwise distances between all assemblies of each marker to check duplicated sequences and contaminations. To do so, we first need to align them:
 
-Then get the consensus sequence resulting from the biggest cluster of nearly identical sequences (allowing 95% identity and a second biggest cluster size of 10% of the number of sequences in the alignment). It is important to store the log of this command as it will be useful to remove flagged markers later.
-
 ```
 mafft
-# Once it is finished, run:
-make_consensus
+```
+
+Then, get the consensus sequence resulting from the biggest cluster of nearly identical sequences (allowing 95% identity and a second biggest cluster size of 10% of the number of sequences in the alignment). It is important to store the log of this command as it will be useful to remove flagged markers later.
+
+```
+make_consensus > consensus.log 2>&1
 ```
 
 Resulting assemblies can now be merged between all individuals to get one file per marker.
