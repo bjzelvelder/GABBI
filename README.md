@@ -4,14 +4,14 @@
   <img width=450 src="/image/GABBI_logo.png" alt="Genome Alignment-Based Bait Inference"/>
 </p>
 
-**GABBI** is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**.
-GABBI-derived probe sets are expected to target more variable loci than usual probe design methods that rely on a base genome to map reads, providing more sensitive and phylogenetically resolutive data.
+**GABBI** is a fully automated pipeline for designing target capture baits (or probes) from **whole-genome alignments**.
+Probe sets derived from GABBI are expected to target more variable loci than those produced by conventional probe design methods that rely on a single reference genome for mapping reads, thereby providing more sensitive and phylogenetically informative data.
 
-This pipeline was designed in this publication to produce the first set of weevil-specific probes. If you use GABBI, please cite:
+This pipeline was developed and described in the following publication, which presents the first weevil-specific probe set. If you use GABBI, please cite:
 > B. Zelvelder, L. Benoit, A. Loiseau, J. Haran, R. Allio (2026) A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea); bioRxiv 2026.05.09.724036; doi: [https://doi.org/10.64898/2026.05.09.724036](https://doi.org/10.64898/2026.05.09.724036)
 
 # Requirements
-To run this pipeline, all you need is the [singularity image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) and a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 installed (see [Installation](#installation)). This pipeline was designed on Ubuntu 22.04 and mainly written in shell.
+To run this pipeline, the only requirements are the [singularity image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) and a Linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.8.0 (see [Installation](#installation)). This pipeline was developed on Ubuntu 22.04 and is primarily written in shell.
 
 # Table of contents
 1. [Installation](#installation)
@@ -23,126 +23,124 @@ To run this pipeline, all you need is the [singularity image](https://cloud.syla
     - [Running the pipeline](#running-the-pipeline)
     - [Reading GABBI outputs](#reading-gabbi-outputs)
 4. [What to do next](#what-to-do-next)
-    - [Tweak GABBI conservation thresholds](#tweak-gabbi-conservation-thresholds)
-    - [Run a species tree using the final set of targeted loci](#run-a-species-tree-using-the-final-set-of-targeted-loci)
-    - [Generate your final probe set](#generate-your-final-probe-set)
-    - [Annotate targeted loci as coding or non-coding sequences for downstream analyses](#annotate-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses)
-    - [Test the probe set _in silico_ on whole genome sequences (WGS)](#test-the-probe-set-in-silico-on-whole-genome-sequences)
+    - [Adjusting GABBI conservation thresholds](#adjusting-gabbi-conservation-thresholds)
+    - [Running a species tree using the final set of targeted loci](#running-a-species-tree-using-the-final-set-of-targeted-loci)
+    - [Generating the final probe set](#generating-the-final-probe-set)
+    - [Annotating targeted loci as coding or non-coding sequences for downstream analyses](#annotating-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses)
+    - [Testing the probe set _in silico_ on whole genome sequences (WGS)](#testing-the-probe-set-in-silico-on-whole-genome-sequences)
 5. [Detailed options](#detailed-options)
 6. [Citation](#citation)
 7. [References](#references)
 
 ---
 # Installation
-The GABBI pipeline uses **singularity** to run in a pre-built environment (a so-called _singularity image_) to avoid installation issues and incompatibilities. Thus, all you need is a linux environment with ```apptainer``` version >= 1.0.0 or ```singularity``` version >= 3.0.0 installed. This software can be installed following this tutorial: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, I will always refer to ```singularity``` rather than ```apptainer``` but all commands that start with ```singularity ...``` can be spelled ```apptainer ...```. 
+The GABBI pipeline relies on **singularity** to execute within a pre-built container environment (a _singularity image_), eliminating installation issues and incompatibilities. Consequently, the only requirement is a Linux environment with ```apptainer version >= 1.0.0``` or ```singularity version >= 3.0.0```. To install apptainer, instructions are available at: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, all commands below use the ```singularity``` prefix, but these are fully interchangeable with ```apptainer```.
 
-GABBI is distributed as a Singularity image and has no external dependencies beyond Singularity/Apptainer itself. On HPC clusters managed by SLURM, Singularity is typically available as an environment module that can be searched throught ```module search singularity``` and can be loaded with ```module load <singularity module>``` prior to execution.
+GABBI is distributed as a Singularity image and has no external dependencies beyond Singularity/Apptainer itself. On HPC clusters managed by SLURM, Singularity is typically available as an environment module that can be searched with ```module search singularity``` and can be loaded with ```module load <singularity module>``` prior to execution.
 
 ## Downloading the GABBI singularity image
-Because a singularity image is too heavy to be stored and pulled from github, you will not find the ```.sif``` file in this repository. However, the [GABBI image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) is stored on the **Sylabs** remote repository and can simply be pulled with this command:
+Because singularity images are too large to be stored on GitHub, the ```.sif``` file is not included in this repository. Instead, the [GABBI image](https://cloud.sylabs.io/library/bjzelvelder/pipeline/gabbi) is hosted on the **Sylabs** remote repository and can be retrieved with the following command:
 ```
 singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.2.0
 ```
-You should then be able to see the help section with:
+The help section can then be accessed with:
 ```
 singularity run-help gabbi_v1.2.0.sif
 singularity run gabbi_v1.2.0.sif --help
 ```
 
 ## Building from 'source'
-If previous commands didn't work or if you want to make local modifications to the GABBI scripts, you can build the singularity image yourself using the definition file ```GABBI_v1.2.0.def```. 
-First, get GABBI files by cloning the GABBI repository with:
+If the above commands failed, or if local modifications to the GABBI scripts are required, the singularity image can be built from the definition file ```GABBI_v1.2.0.def```. 
+First, clone the GABBI repository:
 ```
 git clone https://github.com/bjzelvelder/GABBI.git
 cd GABBI
 ```
-At that point, you can build the GABBI singularity image yourself (which should take about 40 minutes). You can also build a GABBI sandbox to run the pipeline interactively (for verboseging purposes).
+At this point, the GABBI singularity image can be built locally (which typically takes approximately 45 minutes). Alternatively, a GABBI sandbox can be built for interactive execution.
 
 ### Building the GABBI singularity image
 Inside GABBI's repository, simply execute:
 ```
 singularity build --fakeroot gabbi_v1.2.0.sif GABBI_v1.2.0.def
 ```
-This will create a ```.sif``` image that can be run the same way with:
+This generates a ```.sif``` image that can be run identically with:
 ```
 singularity run gabbi_v1.2.0.sif --help
 ```
 
 ### Building a GABBI sandbox
-Alternatively, if you want to make modifications to the GABBI scripts or simply run the pipeline more interactively from within the singularity image (environment), you can make a GABBI sandbox with a writable fakeroot that will be stored in ```GABBI_sandbox/```:
+Alternatively, a writable GABBI sandbox stored in ```GABBI_sandbox/``` can be created for interactive use or script modification:
 ```
-singularity build GABBI_sandbox/ GABBI_v1.2.0.def
+singularity build --fakeroot --sandbox GABBI_sandbox/ GABBI_v1.2.0.def
 mkdir -p GABBI_sandbox/$PWD
 singularity shell -B $PWD --fakeroot --writable GABBI_sandbox/
+
 ```
-Once you run singularity shell, you are inside the singularity image. Please be aware that binding your local path with ```-B $PWD``` allows GABBI to access your local files, but you can still make changes to them **even if you are inside the singularity image**.
-You can now run the GABBI pipeline by launching the ```main.sh``` script:
+Once inside the singularity shell, the local path is bound via ```-B $PWD```, making local files accessible from within the image. Note that modifications to bound files remain effective even from within the container. The GABBI pipeline can then be launched by sourcing the ```main.sh``` script:
 ```
 source /opt/gabbi/main.sh --help
 ```
-Note: because ```main.sh``` runs ```set -eou pipefail```, errors might eject you from the singularity image. To avoid having to connect back to the sandbox repeatidily, run this command after sourcing ```main.sh```:
+Note: because ```main.sh``` runs ```set -eou pipefail```, errors may terminate the singularity session. To prevent repeated reconnection to the sandbox, run the following command after sourcing ```main.sh```:
 ```
 set +eou pipefail
 ```
 ---
 # Pipeline overview
-The GABBI pipeline is a fully automated pipeline to design target capture baits (or probes) using a **whole-genome alignment**. As opposed to other commonly used methods of probe design, GABBI doesn't rely on a **base taxon**. The final set of targeted loci tend to be more variable than ultraconserved elements (UCE) and are referred to as shared homologous regions (SHR). Further details on the context and signficance of this new probe design method can be accessed through the publication that features the GABBI pipeline ([Zelvelder et al. 2026 pre-print](#citation)).
+GABBI is a fully automated pipeline for designing target capture baits (or probes) from **whole-genome alignments**. Unlike commonly used probe design methods, GABBI does not rely on a **reference taxon**. The resulting targeted loci tend to be more variable than ultraconserved elements (UCEs) and are referred to as shared homologous regions (SHRs). Further details on the rationale and significance of this probe design approach are available in the associated publication ([Zelvelder et al. 2026 pre-print](#citation)).
 
-The GABBI pipeline can be segmented into 6 phases:
-  - **1)** Aligning chromosome-level genomes using [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus) ([Armstrong et al. 2020](#references))
-  - **2)** Identifying conserved regions using [MafFilter](https://github.com/jydu/maffilter) and [PhastCons](http://compgen.cshl.edu/phast/phastCons-tutorial.php) ([Hubisz et al. 2011; Dutheil et al. 2014](#references))
-  - **3)** Extracting shared conserved regions between chromosome-level genomes using BLAST (NCBI; [Camacho et al. 2009](#references))
-  - **4)** Making a temporary probe set out of these shared conserved regions enriched with ancestral sequences using IQ-TREE 3 ([Wong et al. 2025](#references))
-  - **5)** Testing the temporary probe set with _in silico_ target capture on additional genomes using [PHYLUCE](https://phyluce.readthedocs.io/en/latest/purpose.html) ([Faircloth 2016](#references))
-  - **6)** Extracting the final set of SHR (or targeted loci) enriched with ancestral sequences
+The GABBI pipeline comprises six phases:
+  - **1)** Whole-genome alignment of chromosome-level assemblies using [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus) ([Armstrong et al. 2020](#references))
+  - **2)** Identification of conserved regions using [MafFilter](https://github.com/jydu/maffilter) and [PhastCons](http://compgen.cshl.edu/phast/phastCons-tutorial.php) ([Hubisz et al. 2011; Dutheil et al. 2014](#references))
+  - **3)** Extraction of shared conserved regions across chromosome-level genomes using BLAST (NCBI; [Camacho et al. 2009](#references))
+  - **4)** Generation of a temporary probe set from these shared conserved regions, enriched with ancestral sequences inferred by IQ-TREE 3 ([Wong et al. 2025](#references))
+  - **5)** Evaluation of the temporary probe set via _in silico_ target capture on additional genomes using [PHYLUCE](https://phyluce.readthedocs.io/en/latest/purpose.html) ([Faircloth 2016](#references))
+  - **6)** Extraction of the final SHR set (i.e. targeted loci) enriched with ancestral sequences
 
 <p align="left">
   <img src="/image/GABBI_pipeline.png" alt="GABBI_pipeline"/>
 </p>
 
-The goal of this pipeline is to make the design of specific target-capture bait sets as straightforward as possible for any user, while remaining flexible enough to accommodate user-specific requirements. For this reason, you only need to provide **chromosome-level genomes** and a corresponding **guide tree** (see [preparing input data](#preparing-input-data) section) for the genome alignment (although high quality, scaffold-level genomes might work fine for our purpose), and an additionnal set of **whole-genome assemblies**. Alternatively, you can also run this pipeline with a genome alignment file (HAL). Each step of the pipeline is checkpointed to save time on re-run and can be restarted to fine-tune the probe set with specific thresholds that certainly depend on each dataset's specifics (see [detailed options](#detailed-options)).
+The primary goal of this pipeline is to make taxon-specific target-capture bait design as straightforward as possible, while remaining flexible enough to accommodate user-specific requirements. For this reason, users are required to provide only **chromosome-level genome assemblies**, a corresponding **guide tree** for the whole-genome alignment (see [preparing input data](#preparing-input-data)), and an additionnal set of **whole-genome assemblies** for probe validation. Alternatively, an existing genome alignment file (HAL format) can be provided as input. Each step of the pipeline is checkpointed to minimise redundant computation upon re-runs, and individual steps can be restarted to fine-tune the probe set with dataset-specific thresholds (see [detailed options](#detailed-options)).
 
 > [!IMPORTANT]
-> When provided 48 cpu cores, 4 chromosome-level genomes and 7 additional genomes of weevils, the GABBI pipeline took roughly 13 hours and 30 minutes to run in total and produced 20 Gb of intermediate files. As it is strongly paralellized, we strongly recommend giving as much cpu cores as possible to GABBI to reduce computational time even further for bigger datasets. Some steps also require a lot of memory, so giving as much memory as possible to GABBI is also recommended (especially on HPC clusters with ressource limitations).
+> When provided 48 cpu cores, 4 chromosome-level genomes, and 7 additional weevil genomes, GABBI completed in approximately 13 hours and 30 minutes and produced 20 GB of intermediate files. Given its high degree of parallelisation, allocating as many CPU cores as possible is strongly recommended to reduce computation time, particularly for larger datasets. Several steps also require a lot of memory, so providing sufficient memory is equally recommended (especially on HPC clusters with ressource limitations).
 
 ---
 # How to use the GABBI pipeline
-Once you have fetched the GABBI singularity image and succesfully ran the help command, GABBI is ready to run. To help you prepare input data and reading GABBI output, this section will guide you through the pipeline in greater details using a small examplar dataset available in ```example_data```. This examplar dataset contains 4 chromosome-level genomes and 7 additional genomes of a small sample of weevils that belong to the Curculioninae subfamily (sensu 'CCCMS'; [Haran et al. 2023](#references)).
+Once the GABBI singularity image has been obtained and the help command successfully ran, the pipeline is ready for use. This section provides a detailed guide for preparing input data and interpreting GABBI outputs, uing the example dataset available in ```example_data```. This dataset comprises 4 chromosome-level genomes and 7 additional genomes representing a subset of weevils belonging to the Curculioninae subfamily (sensu 'CCCMS'; [Haran et al. 2023](#references)).
 
 ## Preparing input data
-The first step of the GABBI pipeline is the genome alignment with [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus). If you already have a HAL genome alignment file, you can short-circuit this step using the ```--hal``` option. Otherwise, GABBI requires two arguments: ```--chr-genomes``` and ```--guide-tree``` to run the genome alignment. In this case, we need to [download](#downloading-ncbi-genomes) and [organize](#organizing-directory-architecture) the genomes that will be used for the probe design and provide a phylogenetic tree of the chromosome-level genomes to [guide the genomic alignment](#getting-a-guide-tree). But first, there are a few things to note on how to [choose those genomes](#choosing-representative-taxa).
+The first step of the GABBI pipeline is the whole-genome alignment with [Cactus](https://github.com/ComparativeGenomicsToolkit/cactus). If a HAL genome alignment file is already available, this step can be bypassed using the ```--hal``` option. Otherwise, GABBI requires two arguments: ```--chr-genomes``` and ```--guide-tree``` to run the genome alignment. In this case, the genomes to be used for probe design must be [downloaded](#downloading-ncbi-genomes) and [organised](#organizing-directory-architecture), and a phylogenetic tree featuring the chromosome-level genomes must be [provided as a guide to the alignment](#getting-a-guide-tree). But first, several considerations regarding the [selection of representative taxa](#choosing-representative-taxa) are detailed below.
 
 ### Choosing representative taxa
-Ultimately, the goal of a probe set is to efficiently hybridize with the fragmented DNA of any taxon belonging to the targeted taxonomic group. Thus, we want as much as possible that our probe sequences map the actual variation of each targeted locus. As we cannot represent the entire diversity of our taxonomic target in the probe design (otherwise why would we even bother with probe design?), we have to rely on a drastic subsample of its diveristy by a handful of representative taxa. Historically, very few genomes were used to represent large taxonomic scales (e.g. only 6 taxa represent the 400k species of the Coleoptera UCE probe set; [Faircloth 2017](#references)), but thanks to the growing number of available complete genomes, we can greatly improve this number. Nonetheless, here are a few things you should have in mind:
-- Avoid the taxonomic redundancy in representative genomes. Some genus/tribe are often overrepresented among available genomes whereas entire families can be missing. Reducing the taxonomic redundancy in the genome set should prevent selected markers to appear more shared than expected.
-- Be aware that providing too many genomes can rapidly become computationnaly intensive. Further research is needed to quantify an optimum, but providing one or two taxa per taxonomic tribe should be enough to cover their genetic variation.
-- Genomic alignments should be conducted on chromosome-level (or very high quality) genomes and validated with a separate set of additional genomes (with ```--add-genomes``` option). But testing the final probe set with a third set of assembled or unassembled data can also be useful (see [What to do next?](#what-to-do-next)).
+The primary objective of a probe set is to efficiently hybridise with the fragmented DNA of any taxon within the target taxonomic group. Accordingly, probe sequences should capture as much of the actual variation at each targeted locus as possible. Since representing the full diversity of a taxonomic group in probe design is impractical, a carefully selected subset of representative taxa must be used. Historically, very few genomes were employed to represent large taxonomic scales (e.g., only 6 taxa to represent the ~400,000 species of the Coleoptera UCE probe set; [Faircloth 2017](#references)). The growing availability of complete genome assemblies now allows a substantial improvement in taxonomic representation. The following considerations should be kept in mind:
 
-With that in mind, you can check available genomes at [NCBI](https://www.ncbi.nlm.nih.gov/datasets/genome/) and play with filters and column selection to fine-tune your selection of **chromosome-level** and **additional genomes**.
+- Avoid taxonomic redundancy among representative genomes. Certain genera or tribes are often over-represented among available assemblies, while entire families may be missing. Reducing taxonomic redundancy should prevent selected markers from appearing more broadly shared than expected.
+- Be aware that including too many genomes can rapidly become computationnaly intensive. Further research is needed to determine an optimum, but providing one or two taxa per tribe is generally sufficient to capture the relevant genetic variation.
+- Whole-genome alignments should preferably be conducted on chromosome-level (or very high quality) genome assemblies and validated against a separate set of additional genomes (with ```--add-genomes``` option).
+- Testing the final probe set against a third independent set of assembled or unassembled data is also important to validate a probe set (see [What to do next?](#what-to-do-next)).
+
+With these considerations in mind, available assemblies can be browsed at [NCBI](https://www.ncbi.nlm.nih.gov/datasets/genome/) using filters and column selection to refine the choice of **chromosome-level** and **additional genomes**.
 
 ### Downloading NCBI genomes
-Once you have chosen the genomes you want to represent in your probe design, you can download them manually but I recommend you to use the ```download_genomes_ncbi.sh``` script to download and organize them automatically. To do so, you must install the ```ncbi_datasets``` command-line program [here](https://www.ncbi.nlm.nih.gov/datasets/docs/v2/command-line-tools/download-and-install/); if you have conda installed, simply run:
-```
-conda install -c conda-forge ncbi-datasets-cli
-```
-Then, download the NCBI table of your active selection, making sure that you have **selected the "Assembly Level" column** on NCBI (the script will separate chromosome-level and other genomes accordingly):
+Once the target genomes have been selected, they can be downloaded manually or automatically using the ```download_genomes_ncbi.sh``` script implemented in the singularity image. Download the NCBI table corresponding to your active selection, ensuring that the **"Assembly Level"** column is included (the script will automatically separate chromosome-level and other assemblies accordingly):
 
 <p align="center">
   <img src="/image/screenshot_ncbi.png" alt="NCBI_screenshot" width="600"/>
 </p>
 
-Then, give your NCBI table as an argument to the script that will download, rename and organize genomes depending on organism names, assembly accessions and assembly levels:
+Then, provide the NCBI table as an argument to the script, that will download, rename, and organize the assemblies according to organism names, assembly accessions, and assembly levels:
 
 ```
-./download_genomes_ncbi.sh [path_to_ncbi_table]
+singularity exec gabbi_v1.2.0.sif download_genomes_ncbi.sh [path_to_ncbi_table]
 ```
 
 ### Organizing directory architecture
-If you downloaded your genomes from NCBI using the ```download_genomes_ncbi.sh``` script as above, genomes should already be well organized, but you can still move some chromosome level genomes to the ```additional_genomes/``` folder if you don't want them to be part of cactus whole-genome alignment (see [Choosing representative taxa](#choosing-representative-taxa).
+If genomes were downloaded using the ```download_genomes_ncbi.sh``` script as described above, they should already be appropriately organised. Chromosome-level assemblies that should not be included in the Cactus whole-genome alignment can be moved to the ```additional_genomes/``` folder (see [Choosing representative taxa](#choosing-representative-taxa).
 
-As you can tell by the ```example_data``` directory architecture, each genome must be in its own subfolder, typically named after the taxon name you want to keep during the analysis. The ```download_genomes_ncbi.sh``` script should have organized your genome selection in this way, but you can obvisouly add your own genomic alignments by following the same logic (simply make sure that they have the ```.fasta``` or ```.fna``` file extension).
+As illustrated by the ```example_data``` directory structure, each genome must reside in its own subdirectory, typically named after its corresponding taxon. The ```download_genomes_ncbi.sh``` script organises assemblies accordingly, but custom assemblies can also be added following the same structure (ensuring the ```.fasta``` or ```.fna``` file extension is used).
 
-High quality, chromosome-level genomes are strongly recommended for cactus whole-genome alignments, so they need to be stored in a separate folder as other genomes to be parsed through the ```--chr-level-genomes``` option. Here is how your directory architecture should look like:
+High quality, chromosome-level genomes are strongly recommended for Cactus whole-genome alignments and must be stored in a separate directory to be parsed via the ```--chr-level-genomes``` option. The expected directory structure is as follows:
 
 ```
 +--- chr_level_genomes/
@@ -163,47 +161,47 @@ High quality, chromosome-level genomes are strongly recommended for cactus whole
 |  +--- Xyleborus_glabratus/
 ```
 
-For clarity, and because I avoided any taxonomic redundancy at the species level in my example dataset, I got rid of the GenBank ID suffix provided by the ```download_genomes_ncbi.sh``` script using this command:
+For clarity, and given that taxonomic redundancy at the species level was avoided in the example dataset, the GenBank ID suffix appended by the ```download_genomes_ncbi.sh``` script was removed using:
 ```
 for i in chr_level_genomes/* additional_genomes/*; do mv $i ${i%_GC*} ;done
 ```
 
 > [!NOTE]
-> Additional genomes parsed through the ```--add-genomes``` option can be of any quality, but low-quality genomes can impact SHR recovery and reduce the total number of targeted loci. If you have some in your dataset, you might consider lowering the final [SHR threshold](#detailed-options).
+> Additional genomes provided via the ```--add-genomes``` option can be of any quality; however, low-quality assemblies can reduce SHR recovery and decrease the total number of targeted loci. In such cases, lowering the final [SHR threshold](#detailed-options) may be appropriate.
 
 ### Getting a guide tree
-The whole-genome alignment step requires a guide tree to run. This phylogenetic tree must be provided as a **NEWICK** file with **matching taxon names** with the chromosome level genomes provided in the ```chr_level_genomes/``` folder. You can check the ```chr_level_genomes.nw``` format for reference.
+The whole-genome alignment step requires a guide tree to run. This phylogenetic tree must be provided as a **NEWICK** file with **taxon names matching exactly** those of chromosome-level genome directories in ```chr_level_genomes/```. The ```chr_level_genomes.nw``` file can be used as a format reference.
 
-Because a weevil phylogeny was already available for the example dataset, I simply pruned an existing tree to only contain the taxa I provided in my dataset and renamed them to match exactly with the ```chr_level_genomes/``` subfolders names. To do so, many tools exist but you can use [FigTree](https://github.com/rambaut/figtree) or [Mesquite](https://www.mesquiteproject.org/).
+For the example dataset, an existing weevil phylogeny was pruned to retain only the relevant taxa, which were then renamed to match the subdirectory names in ```chr_level_genomes/``` exactly. This can be accomplished with tools such as [FigTree](https://github.com/rambaut/figtree) or [Mesquite](https://www.mesquiteproject.org/).
 
-However, If you are unsure what your phylogenetic tree should look like, you may try to run the [ROADIES](https://github.com/TurakhiaLab/ROADIES) pipeline to compute a fast phylogenetic tree from your genomic dataset ([Gupta et al. 2025](#references)).
+If no phylogenetic inference is available, the [ROADIES](https://github.com/TurakhiaLab/ROADIES) pipeline may be used to generate a rapid species tree from the genomic dataset ([Gupta et al. 2025](#references)).
 
-> _This feature might be added in the GABBI pipeilne in the future._
+> _This feature might be incorporated into the GABBI pipeilne in a future release._
 
 ## Running the pipeline
-Once you have prepared your input data, you can run the GABBI pipeline. Here are a few useful commands you can run based on the ```example_data``` provided:
+Once input data have been prepared, the GABBI pipeline can be executed. Here are a few examples of commands you can run based on the provided ```example_data```:
 
-  - Run the pipeline with minimal options and default arguments, printing logs to STDOUT:
+  - Run the pipeline with minimal options and default parameters, printing logs to STDOUT:
 ```
 singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw
 ```
 
 
-  - Personnalize basic pipeline outputs and add a log file (RECOMMENDED):
+  - Customise basic pipeline outputs and redirect logs to a file (RECOMMENDED):
 ```
 singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 64 --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output 2>&1 | tee -a GABBI_Curculioninae_v1.log
 ```
-> Informations outputed by GABBI only can be accessed with ```grep "\[GABBI\]" GABBI_Curculioninae_v1.log```
+> GABBI-specific log entries can be accessed with ```grep "\[GABBI\]" GABBI_Curculioninae_v1.log```
 
 
-  - Run GABBI with increased ressources for cactus (e.g. to run on a HPC cluster):
+  - Run GABBI with increased ressources for Cactus (e.g. on a HPC cluster):
 ```
 singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --threads 64 --verbose --cactus-maxDisk 500G --cactus-maxMemory 500G \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output
 ```
-> If you have access to a HPC cluster, don't hesitate to ask for a lot of memory or a specific node with big memory, as default ressources may not be enough for cactus to run without getting interrupted for memory limits.
+> When running on a HPC cluster, it is advisable to request a large memory allocation or a high-memory node, as default ressources limits may not be sufficient for Cactus, which may end up interrupted.
 
 
   - Run (or resume) GABBI on a HAL file:
@@ -215,16 +213,16 @@ singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes a
 
 
 
-  - Run GABBI on a large HAL file, reducing the number of MAF references to generate:
+  - Run GABBI on a large HAL file, restrincting the number of MAF files to generate based on a subset of taxa (in development):
 ```
 singularity run gabbi_v1.2.0.sif --hal GABBI_Curculioninae_v1.hal \
     --maf-references example_data/maf_references.txt --threads 64 --verbose \
     --prefix GABBI_Curculioninae_v1 --out-dir GABBI_Curculioninae_v1_output  2>&1 | tee -a GABBI_Curculioninae_v1.log
 ```
-> Without the ```--add-genomes``` option, GABBI will stop before phase 05_adding_genomes and without the ```--chr-genomes``` option, chromosome-level genomes will be extracted from the HAL file. Only genomes listed in ```--maf-references``` file will be extracted. 
+> Without the ```--add-genomes``` option, GABBI will stop before phase ```05_adding_genomes```. Without the ```--chr-genomes``` option, chromosome-level genomes will be extracted from the HAL file. Only genomes listed in the ```--maf-references``` file will be extracted.
 
 
-  - Run the GABBI pipeline on a reduced dataset, increasing default stringency thresholds:
+  - Run the GABBI pipeline on a reduced dataset with increased stringency thresholds:
 ```
 singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 \
@@ -233,7 +231,7 @@ singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes a
 ```
 
 
-  - Change the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without having to rerun the entire pipeline:
+  - Adjust the final SHR threshold based on the multifasta table to increase the final number of targeted loci, without rerunning the full pipeline:
 ```
 singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes additional_genomes --guide-tree chr_level_genomes.nw \
     --temp-tax-threshold 100 --temp-allow-dupes 0 \
@@ -241,35 +239,35 @@ singularity run gabbi_v1.2.0.sif --chr-genomes chr_level_genomes --add-genomes a
     --prefix GABBI_Curculioninae_v2 --out-dir GABBI_Curculioninae_v2_output 2>&1 |tee -a GABBI_Curculioninae_v2.log 
 ```
 
-Each step is checkpointed if it succesfully ran, so running the same command again will resume the pipeline where it stopped.
-If one step fails, the pipeline stops and will restart where it failed running the same command. Note that sometimes, issues are not correctly caught by the checkpointing system, so you might have to restart from an anterior step once you found the issue. Please report issues in the corresponding github sections to help me improve the pipeline!
+Each step is checkpointed upon successful completion, so re-running the same command will resume the pipeline where it stopped.
+If one step fails, the pipeline stops and will restart from the failed step upon re-run. In some cases, issues may not be correctly caught by the checkpointing system, requiring a manual restart from an earlier step once the issue has been corrected. Please report any issues in the corresponding GitHub Issues section.
 
 >[!IMPORTANT]
-> If you don't manage to get cactus running, you may consider running it separately to fine tune cactus options or run it step by step by referring to [cactus documentation](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/progressive.md).
-> In this case, once you have your ```.hal``` file, you can resume GABBI with the ```--hal``` option. Make sur that it is named ```<prefix>.hal``` as in the ```--prefix <prefix>``` option.
+> If you don't manage to get Cactus running, it may be run independently to fine-tune its parameters or execute it step by step by referring to the [Cactus documentation](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/progressive.md).
+> Once a ```.hal``` file has been produced, GABBI can be resumed using the ```--hal``` option. Ensure that the HAL file is named ```<prefix>.hal``` consistently with the ```--prefix <prefix>``` option.
 
 ## Reading GABBI outputs
 
-GABBI outputs and temporary files are all stored in the ```--output-dir``` provided or in ```GABBI_output/``` by default. They are organized so that each phase of the pipeline has its own subdirectory named after the phase name (e.g. 01_cactus_alignment, 02_conserved_loci etc.).
+All GABBI outputs and intermediate files are all stored in the directory specified by ```--output-dir```, or in ```GABBI_output/``` by default. They are organised such that each pipeline phase has its own subdirectory named after the corresponding phase (e.g. 01_cactus_alignment, 02_conserved_loci, etc.).
 
-Files and statistics of interest are given through the pipeline. They can be accessed in the log file using:
+Files and summary statistics of interest are reported throughout the pipeline execution and can be accessed from the log file using:
 
 ```
 grep "\[GABBI\]" [log_file]
 ```
 
-Here is a more detailed list of some GABBI outputs (generated on the example dataset with the default ```cactus_alignment``` prefix).
+Here is a more detailed list of GABBI outputs generated on the example dataset with the default ```cactus_alignment``` prefix.
 - ```01_cactus_alignment/```
   - ```cactus_input.txt```: Input file created using ```--chr-level-genomes``` content and the provided ```--guide-tree```.
   - ```cactus_alignment.hal```: Cactus whole-genome alignment.
 - ```02_conserved_loci/```
-  - ```maf/```: Whole-genome alignment converted into a "Multiple Alignment Format" (MAF), using each genome as a base genome. Only logs remain to save disk space.
-  - ```maffilter/```: Each genome has its own subdirectory containing filtered blocks of alignments of each of their chromosome/scaffolds (based on ```--block-size``` and ```--block-length``` options). Only logs remain to save disk space.
-  - ```conserved_loci/*.merge.fasta```: Conserved loci found by phastcons in each genome.
+  - ```maf/```: Whole-genome alignment converted into a Multiple Alignment Format (MAF), using each genome as a reference sequence. Only log files are retained to save disk space. A subset of reference genomes can be provided with ```--maf-references``` option.
+  - ```maffilter/```: Each genome has its own subdirectory containing filtered blocks of alignments from each chromosome or scaffold (based on ```--block-size``` and ```--block-length``` options). Only log file are retained to save disk space.
+  - ```conserved_loci/*.merge.fasta```: Conserved loci found by PhastCons in each genome.
 - ```03_cross_blast/```
-  - ```shr_clustering/cactus_alignment.shr_from_blastn.mintax3.dupes0.list```: Filtered results of the cross-BLASTn between phastcons conserved loci (based on ```--temp-tax-threshold``` and ```--temp-allow-dupes``` options).
+  - ```shr_clustering/cactus_alignment.shr_from_blastn.mintax3.dupes0.list```: Filtered results of the cross-BLASTn between PhastCons conserved loci (based on ```--temp-tax-threshold``` and ```--temp-allow-dupes``` options).
 - ```04_shr_extraction/```
-  - ```shr/```: List of temporary SHR sequences obtained from filtered cross-BLAST results.
+  - ```shr/```: Temporary SHR sequences obtained from filtered cross-BLAST results.
   - ```cactus_alignment.temp.loci.fasta```: FASTA file containing all temporary targeted loci.
   - ```cactus_alignment.temp.anc.loci.fasta```: FASTA file containing all temporary targeted loci and their ancestral sequences.
 - ```05_adding_genomes```
@@ -277,34 +275,39 @@ Here is a more detailed list of some GABBI outputs (generated on the example dat
   - ```mapping/```: Results from LASTZ mapping of temporary probes on each chromosome-level and additional genomes.
   - ```final_phyluce_probes/cactus_alignment.70.probe_list-DUPE-SCREENED.fasta```: Final probe set (without ancestral sequences) generated with PHYLUCE.
   - ```consensus_loci/cactus_alignment.70.phyluce.loci.cons.fasta```: Consensus sequences of the PHYLUCE final probe set.
-  - ```multifasta_table/cactus_alignment.table```: Table listing the number of loci conserved by X% of taxa (from 0 to 100%; useful to modify ```--shr-threshold``` option).
+  - ```multifasta_table/cactus_alignment.table```: Table reporting the number of loci conserved by X% of taxa (from 0 to 100%; useful for adjusting the ```--shr-threshold``` option).
 - ```06_final_targeted_loci```
-  - ```final_alignments/```: Phylomera alignments of the final set of targeted loci. Can be used to easily build a species tree of all genomes in the dataset (see [future directions](#future-directions)).
+  - ```final_alignments/```: _Phylomera_ alignments of the final set of targeted loci. These can be used to easily reconstruct a species tree of all genomes in the dataset (see the following section [Phylogeny of the final set of targeted loci](#run-a-species-tree-using-the-final-set-of-targeted-loci)).
   - ```cactus_alignment.final.anc.loci.fasta```: Final set of targeted SHR and ancestral sequences.
-  - ```cactus_alignment.final.anc.loci.cons.fasta```: Consensus sequences of the final set of targeted loci (to be used as references during alignments)
+  - ```cactus_alignment.final.anc.loci.cons.fasta```: Consensus sequences of the final set of targeted loci (to be used as references during phylogenomic alignments)
 
-> The asterisk (*) means that multiple files have the same pattern.
+> The asterisk (*) means that multiple files share the same naming pattern.
 
 # What to do next
 
-Once GABBI finished running, you should find a file containing all **targeted loci** from all genomic references, i.e. genomes listed in the ```--chr-genomes``` directory or ```--maf-references``` file supplied, genomes listed in the ```--add-genomes``` directory, and there ancestral sequences (named "Node#") in ```your_GABBI_output/06_final_targeted_loci/prefix.final.anc.loci.fasta```. Note that this file **does not** contain probes (or baits): you are free to design them on your own or ask your bait synthesizer company to generate them from your targeted loci file. _Although this feature might be added in the GABBI pipeilne in the future._
+Once GABBI has completed, a file containing all **targeted loci** from all genomic references, including genomes listed in the ```--chr-genomes``` directory or ```--maf-references``` file, genomes listed in the ```--add-genomes``` directory, and their ancestral sequences (labelled "Node#"), is available in ```GABBI_output/06_final_targeted_loci/prefix.final.anc.loci.fasta```. Note that this file **does not** contain probes (or baits): users are free to design probes independently or to request their bait synthesis provider to generate them from the targeted loci file. _Although this feature might be added in the GABBI pipeilne in a future release._
 
-From now on, you may want to: [tweak GABBI conservation thresholds](#tweak-gabbi-conservation-thresholds) to target more or less loci, check if your probe set actually works by running a [phylogeny of the final set of targeted loci](#run-a-species-tree-using-the-final-set-of-targeted-loci), [generate your final probe set](#generate-your-final-probe-set), [annotate targeted loci as coding or non-coding sequences for downstream analyses](#annotate-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses) and/or [test the probe set _in silico_ on simulated data from whole genome sequences (WGS)](#testing-the-probe-set-in-silico-on-whole-genome-sequences-WGS).
+From this point, the following steps may be considered:
+- [Adjusting GABBI conservation thresholds](#adjusting-gabbi-conservation-thresholds) to target more or less loci;
+- Verifying the probe set performance by running a [phylogeny of the final set of targeted loci](#running-a-species-tree-using-the-final-set-of-targeted-loci);
+- [Generating the final probe set](#generating-your-final-probe-set);
+- [Annotating targeted loci as coding or non-coding sequences for downstream analyses](#annotating-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses);
+- [Testing the probe set _in silico_ on simulated data from whole genome sequences (WGS)](#testing-the-probe-set-in-silico-on-whole-genome-sequences-WGS).
 
-Suggestions on how you may proceed for each of these steps are detailed below.
+Recommendations for each of these steps are detailed below.
 
-## Tweak GABBI conservation thresholds
+## Adjusting GABBI conservation thresholds
 
-As you may have noticed during the execution of the GABBI pipeline, the default conservation score to keep a locus in the final set of targeted loci is **90%**, meaning that all loci that cannot be found in at least 90% of taxa won't be targeted by your probe set. Even if this threshold is very stringent, it allowed us to keep 4,255 loci for weevils in the [GABBI paper](#citation). But if this threshold reduces the number of targeted loci too sharply in your dataset and you want to target more loci, at the cost of being less conservative, you can restart this step by adding the ```--restart 5.5``` option and changing the ```--shr-threshold``` option using the same command-line (checkpoints will be detected automatically, see [example commands above](#running-the-pipeline)).
+The default conservation threshold for retaining a locus in the final targeted set is **90%**, meaning that all loci that cannot be found in at least 90% of taxa will be excluded from the probe set. Although this threshold is very stringent, it yielded 4,255 loci for weevils in the [GABBI paper](#citation). If this threshold reduces the number of targeted loci too drastically in a given dataset, it can be lowered by restarting the relevant step using ```--restart 5.5``` option while modifying the ```--shr-threshold``` value in the same command (checkpoints will be detected automatically; see [example commands above](#running-the-pipeline)).
 
 >[!IMPORTANT]
-> Previous results will be deleted, so if you want to save multiple sets of targeted loci based on different thresholds and [run multiple trees](#run-a-species-tree-using-the-final-set-of-targeted-loci) to compare them, save the ```06_final_targeted_loci``` directory by moving it out of GABBI's output.
+> Previous results will be overwritten. To preserve multiple sets of targeted loci derived from different thresholds (i.e. to compare [multiple species trees](#running-a-species-tree-using-the-final-set-of-targeted-loci)), save the ```06_final_targeted_loci``` directory by moving it to a separate location before re-running.
 
-## Run a species tree using the final set of targeted loci
+## Running a species tree using the final set of targeted loci
 
-All targeted loci reduced to one multi-fasta file per marker can be found in ```GABBI_output/06_final_targeted_loci/targeted_loci```. We can align and clean those markers to build a supermatrix and run a concatenated phylogenomic analysis of the data that produced our probe set. Keep in mind that this analysis is done on targeted loci only and doesn't have flanking data. To run _in silico_ tests of the probe set simulating real capture data with reads and potential flanking regions, please refer to [Test the probe set _in silico_ on whole genome sequences](#test-the-probe-set-in-silico-on-whole-genome-sequences) section.
+All targeted loci provided as independent multi-fasta files can be found in ```GABBI_output/06_final_targeted_loci/targeted_loci```. These can be aligned and cleaned to build a supermatrix and run a concatenated phylogenomic analysis of the data that produced our probe set. Note that this analysis relies exclusively on the targeted loci and does not include flanking sequence data. For _in silico_ tests simulating real capture data with reads and potential flanking regions, refer to [Testing the probe set _in silico_ on whole genome sequences](#testing-the-probe-set-in-silico-on-whole-genome-sequences) section.
 
-GABBI has a built-in tool that I also designed to make such phylogenomic analysis straightforward, called **_Phylomera_**. We simply run _Phylomera_ through the singularity image, giving all targeted loci as input and asking for a species tree with the model of your choice. Here I use MFP+MERGE to minimize biaises that can result from over-partitionning our dataset.
+GABBI includes a built-in tool called **_Phylomera_** that streamlines such phylogenomic analyses. It can be executed through the singularity image, giving all targeted loci as input and inferring a species tree with the substitution model of choice. The example below uses the MFP+MERGE algorythm to minimise biaises that may arise from over-partitionning.
 
 ```
 singularity exec gabbi_v1.2.0.sif phylomera_v0.8.3.sh \
@@ -317,25 +320,25 @@ singularity exec gabbi_v1.2.0.sif phylomera_v0.8.3.sh \
     --perc 70  \
     --continue
 ```
-> Please refer to _Phylomera_ ```--help``` section to fine-tune your parameters.
+> Please refer to _Phylomera_ ```--help``` section to for parameter details.
 
-Once it finished running, you will find the IQ-TREE output files in ```GABBI_output/06_final_targeted_loci/final_tree/TREES```.
+Upon completion, IQ-TREE output files will be available in ```GABBI_output/06_final_targeted_loci/final_tree/TREES```.
 
-## Generate your final probe set
+## Generating the final probe set
 
-If you are satisfied with your final set of targeted loci, you will need to generate the probe set required for _in silico_ analyses. As we relied on an external company to design and clean ours, this step is not currently supported by the GABBI pipeline. You are free to design them on your own or ask your bait synthesizer company to generate them given your targeted loci file.
+Once the final set of targeted loci is satisfactory, probes must be designed for downstream _in silico_ and experimental analyses. As probe design and quality filtering were performed by an external provider in the [GABBI paper](#citation), this step is not currently supported by the GABBI pipeline. Users may design probes independently or submit the targeted loci file to their bait synthesis provider.
 
-Because GABBI offers a lot of reference sequences for each marker with ancestral sequences that can be very redundant, we highly encourage you to remove redundant probes by clusterizing probes in your set checking their % of identity and % of overlap. For example, in the [GABBI paper](#citation), we removed redundant probes with over 75% overlap and 80% identity to reduce our probe set to 130k probes (instead of 721k).
+Given that GABBI outputs a large number of reference sequences per marker, including highly redundant ancestral sequences, it is highly recommended to remove redundant probes by clustering sequences based on percent identity and overlap. For instance, in the [GABBI paper](#citation), probes sharing more than 75% overlap and 80% identity were removed, reducing the probe set from 721k to 130k probes.
 
-## Annotate targeted loci as coding or non-coding sequences for downstream analyses
+## Annotating targeted loci as coding or non-coding sequences for downstream analyses
 
-In order to improve downstream phylogenomic inferences, we also annotated our set of targeted loci as coding or non-coding (for codon-wide partitioning). This step requires you to have at least one finely annotated genome in your dataset. The idea is to fetch the coordinates of each targeted locus on each annotated genome and check with the GFF file if they overlap with coding sequences. We detailed our approach in the [GABBI paper supplementary data](https://doi.org/10.5281/zenodo.20327231) available on Zenodo, if you want to give it a try.
+To improve downstream phylogenomic inferences, targeted loci can be annotated as coding or non-coding sequences (for codon-partitioned analyses). This step requires at least one well-annotated genome in the dataset. The approach consists of retrieving the coordinates of each targeted locus on an annotated genome and cross-referencing them with the corresponding GFF file to identify overlaps with coding sequences. The detailed procedure is described in the [GABBI paper supplementary data](https://doi.org/10.5281/zenodo.20327231) available on Zenodo.
 
-## Test the probe set _in silico_ on whole genome sequences
+## Testing the probe set _in silico_ on whole genome sequences
 
-Lastly, we want to test our probe set on simulated target capture data. To do so, any whole genome sequences (WGS) can be used to get a bigger dataset than the one used to design the probes. Multiple approaches have been proposed in the literature, allowing users to choose the method best suited to their needs (e.g. [PHYLUCE](#references), [HybPiper](#references), [IBA](#references)). In this section, I will detail the approach I used in the [GABBI paper](#citation) using aTRAM [Allen et al. 2015](#references).
+Testing the probe set on simulated target capture data constitutes an important validation step. Any available whole-genome sequences (WGS) can be used to extend the dataset beyond the genomes used for probe design. Several approaches have been proposed in the literature, each suited to different analytical/taxonomical contexts (e.g. [PHYLUCE](#references), [HybPiper](#references), [IBA](#references)). In this section, I will detail the approach used in the [GABBI paper](#citation) using aTRAM [Allen et al. 2015](#references).
 
-First of all, we need to get raw read data, either from real WGS data or simulating them from a genome assembly. In the latter case, we can use ART Illumina ([Huang et al. 2012](#references)) with default options and trim the resulting file with fastp ([Chen et al. 2018](#references)):
+First, raw read data must be obtained, either from real WGS data or by simulating them from genome assemblies. In the latter case, ART Illumina ([Huang et al. 2012](#references)) can be used with default parameters, and the resulting reads trimmed with fastp ([Chen et al. 2018](#references)):
 
 ```
 parallel "
@@ -345,10 +348,10 @@ parallel "
     rm {}/{/}.pe150-reads*
 " ::: chr_level_genomes/* additional_genomes/*
 ```
-> Note that we are using GNU parallel here to speed up the process, but this can be translated into a simple loop.
+> Note that GNU parallel is used here to parallelise the process, but these commands can equivalently be executed in a sequential loop.
 
 
-Performing target capture with aTRAM on large simulated datasets can be computationally intensive, especially with a large amount of probes. To drastically reduce the amount of reads to process (incidentally simulating target capture), we will be using BBMap ([Bushnell 2014](#references); implemented in the GABBI image) to filter reads based on our probe set, with a soft threshold of 50% minimum identity.
+Performing target capture with aTRAM on large simulated datasets can be computationally intensive, especially with large probe sets. To substancially reduce the number of reads to process (incidentally simulating the hybridization step of target capture), we will be using BBMap ([Bushnell 2014](#references); implemented in the GABBI image) to pre-filter reads against the probe set, with a soft identity threshold of 50%.
 
 ```
 singularity exec gabbi_v1.2.0.sif bbmap.sh build=1 ref=baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80
@@ -358,11 +361,11 @@ parallel -j 4 "
 " ::: chr_level_genomes/* additional_genomes/*
 
 ```
-> Here, ```baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80``` is the name of the file containing our **probes**, not targeted loci (see [Generate your final probe set](#generate-your-final-probe-set) section).
-> You should also be aware that BBMap requires a lot of memory, so don't launch too many processes in parallel.
+> Here, ```baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80``` refers to **probe** file, not the targeted loci file (see [Generating the final probe set](#generating-the-final-probe-set) section).
+> Note that BBMap has high memory requirements, so avoid launching too many processes in parallel.
 
 
-Filtered reads are now ready to be processed by aTRAM. I [slightly adjusted](https://github.com/juliema/aTRAM/issues/321) aTRAM scripts to process target capture data more efficiently on Spades 4.2.0 ([Prjibelski et al. 2020](#references)). Those changes are included in the GABBI singularity image as well. We first need to generate the databases for aTRAM to work with using the ```atram_preprocessor.py``` script:
+Filtered reads are now ready to be processed by aTRAM. The aTRAM script implemented in the GABBI image have been [slightly adjusted](https://github.com/juliema/aTRAM/issues/321) to improve performance on target capture data more with Spades 4.2.0 ([Prjibelski et al. 2020](#references)). First, the aTRAM database must be generated using the ```atram_preprocessor.py``` script:
 
 ```
 mkdir -p aTRAM_db
@@ -371,7 +374,7 @@ parallel "
 " ::: chr_level_genomes/* additional_genomes/*
 ```
 
-The ```aTRAM_db``` folder contains all we need to run aTRAM, but we can prepare the probe set to parallelize the process and optimise computation time. The goal is to assemble reads iteratively using each probe sequence as a reference. Although this approach can be kind of overkill, it allows us to get multiple assemblies per marker, which offers some notion of coverage to evaluate duplicate sequences, contaminations and postprocess assemblies accordingly. The following commands apply to a HPC cluster with 500 CPUs available per user, but you can adjust them to your own ressources. My goal is to split the probe file into 500 files that will be processed each on one CPU. 25 jobs will launch 20 instances of aTRAM in parallel, each running on one CPU, repeating that for each species of my dataset.
+The ```aTRAM_db``` directory contains all necessary files for running aTRAM. To parallelise and optimise computation time, the probe file can be split into multiple subsets, each used as a reference for iterative read assembly. While computationally demanding, this approach yields multiple assemblies per marker, providing a notion of coverage useful for identifying duplicate sequences and contaminations. The following commands apply to a HPC cluster with 500 CPUs available per user, but this can be adapted to any ressource limitations. In this example, the probe file is split into 500 subsets, with 25 jobs launching 20 aTRAM instances in parallel, each using a single CPU, across all species.
 
 ```
 mkdir -p split_probes_500 refseq_files
@@ -381,9 +384,9 @@ for s in {0..480..20};do
 done
 ```
 
-We can now run aTRAM:
+aTRAM can then be run as follows:
 
-- ON A SLURM CLUSTER: get run_aTRAM_v2.sh in [GABBI paper Supplementary files](https://doi.org/10.5281/zenodo.20327231), change slurm options and replace ```singularity run aTRAM.sif``` by ```singularity exec gabbi_v1.2.0.sif atram.py```.
+- ON A SLURM CLUSTER: retrieve run_aTRAM_v2.sh in [GABBI paper Supplementary files](https://doi.org/10.5281/zenodo.20327231), adjust slurm options, and replace ```singularity run aTRAM.sif``` by ```singularity exec gabbi_v1.2.0.sif atram.py```.
 ```
 mkdir -p slurm-logs capture
 for sp in chr_level_genomes/* additional_genomes/*; do
@@ -393,7 +396,7 @@ for sp in chr_level_genomes/* additional_genomes/*; do
 done
 ```
 
-- ON A LOCAL COMPUTER: adjust CPU and spades memory depending on your ressources
+- ON A LOCAL COMPUTER: adjust the number of parallel jobs and spades memory according to available ressources.
 ```
 mkdir -p aTRAM_logs capture
 for sp in chr_level_genomes/* additional_genomes/*; do
@@ -408,7 +411,7 @@ parallel -j 80 "
 " ::: chr_level_genomes/* additional_genomes/* ::: split_fasta_500/*
 ```
 
-aTRAM results are stored in each individual's subfolder (i.e. ```capture/Polydrusus_cervinus/aTRAM/```), which includes ```*all_contigs.fasta``` and ```*filtered.fasta``` files that respectively correspond to all spades assemblies, and assemblies blasted back to the reference to remove outliers. For each individual, we will be merging filtered assemblies from each marker in another subfolder ```capture/Polydrusus_cervinus/cons```:
+aTRAM results are stored in each taxon's subdirectory (e.g. ```capture/Polydrusus_cervinus/aTRAM/```), which contains ```*all_contigs.fasta``` and ```*filtered.fasta``` files corresponding to all spades assemblies and assemblies filtered by back-blasting against the reference, respectively. Filtered assemblies from each marker are then merged per taxon into another dedicated subdirectory ```capture/Polydrusus_cervinus/cons```:
 
 ```
 regroup_uce() {
@@ -421,16 +424,16 @@ export -f regroup_uce
 parallel -j 80 regroup_uce {} ::: capture/*
 ```
 
-Then, we want to compute pairwise distances between all assemblies of each marker to check duplicated sequences and contaminations. To do so, we first need to align them:
+Pairwise distances between all assemblies of each marker are then computed to detect duplicated sequences and potential contaminations. For this purpose, assemblies are first aligned:
 
 ```
 find capture -type f | grep "cons" > files_to_align.txt
 parallel -j 80 "mafft --auto --adjustdirectionaccurately {} > {.}.mafft.fasta" :::: files_to_align.txt
 ```
-> Note that at this point, each alignment file contains assemblies obtained from all probes targeting one locus. Thus, they are supposed to be identical.
+> At this stage, each alignment file contains assemblies obtained from all probes targeting a given locus and should therefore be represented by highly similar sequences.
 
 
-Then, get the consensus sequence resulting from the biggest cluster of nearly identical sequences (allowing 95% identity and a second biggest cluster size of 10% of the number of sequences in the alignment). It is important to store the log of this command as it will be useful to remove flagged markers later.
+A consensus sequence is then derived from the largest cluster of nearly identical sequences (allowing up to 5% pairwise distance). If multiple clusters of sequences are detected and the second largest cluster represents more than 10% of all sequences in the alignment, the alignment is discarded. It is important to store the log output from this command as it will be used to remove flagged markers.
 
 ```
 cons() {
@@ -443,7 +446,7 @@ export -f cons
 parallel -j 80 cons {} ::: capture/* > cons.GABBI.log
 ```
 
-Resulting assemblies can now be merged between all individuals to get one file per marker.
+Resulting assemblies can then be merged across all taxa to produce one file per marker:
 
 ```
 transfer() {
@@ -458,7 +461,7 @@ export -f transfer
 parallel -j 80 transfer {} aTRAM_results ::: capture/*
 ```
 
-During these postprocessing steps, we removed alignments that contained sequences from multiple origins (either due to duplication or contamination). Using the consensus command log, we can flag markers that were removed in multiple individuals and decide to remove markers that are found duplicated/contaminated in too many individuals. During the weevil GABBI probe design, I used a very stringent threshold to remove markers duplicated in more than 2 individuals, but this value can be greatly increased with real target capture data, expected to be much more contaminated than simulated and pre-filtered WGS data.
+During these post-processing steps, alignments containing sequences from multiple origins (either due to duplication or contamination) were removed. Using the consensus command log, markers flagged across multiple taxa can be identified and excluded based on a frequency threshold. During the weevil GABBI probe design, a stringent threshold was used to remove markers duplicated in more than 2 individuals. However, this value can be considerably relaxed when working with real target capture data, expected to be much more prone to contamination than simulated and pre-filtered WGS data.
 
 ```
 grep "discarded" cons.GABBI.log |egrep -o "uce_[0-9]+_"|sort |uniq -c|sort -n|awk -v "threshold=2" '$1>threshold { print $2 }' > blacklisted_markers.2.GABBI.txt
@@ -468,7 +471,7 @@ find aTRAM_results/ -type f|egrep -o "uce_[0-9]+"|sort -u|grep -v -f <(sed -E "s
 done
 ```
 
-The resulting folder is now ready to follow phylogenomic analyses. You can run _Phylomera_ using the reference sequences computed by GABBI in ```GABBI_output/06_final_targeted_loci/cactus_alignment.final.anc.loci.cons.fasta``` and your [annotated file](#annotate-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses) if you have one.
+The resulting directory is finally ready to follow phylogenomic analyses. _Phylomera_ can be run using the consensus reference sequences computed by GABBI in ```GABBI_output/06_final_targeted_loci/cactus_alignment.final.anc.loci.cons.fasta``` and, if available, the [annotated loci file](#annotating-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses).
 
 ```
 singularity exec gabbi_v1.2.0.sif phylomera_v0.8.3.sh \
@@ -480,7 +483,7 @@ singularity exec gabbi_v1.2.0.sif phylomera_v0.8.3.sh \
     -g MFP -p 0 \
     -t 80
 ```
-> This command will clean alignments, split core and flanking regions and run gene trees with IQ-TREE using ModelFinder to select the best fitted evolutionary model. To run a concatenated analysis, run the same command, replacing ```-g MFP -p 0``` by, for example, ```-s MFP+MERGE``` (if you want to chose the minimum percentage of taxa required to keep a marker interactively) or ```-s MFP+MERGE -p 70``` (for the typically utilised threshold of 70% spp.)
+> This command performs alignment cleaning, splits core and flanking regions, and infers gene trees with IQ-TREE using ModelFinder for substitution model selection. To run a concatenated analysis, replace ```-g MFP -p 0``` with, for example, ```-s MFP+MERGE``` (to select the minimum percentage of taxa required to keep a marker interactively) or ```-s MFP+MERGE -p 70``` (to apply the commonly used threshold of 70% taxon completeness). Running this command after the completion of gene trees will **not** overwrite or delete them.
 
 ---
 # Detailed options
