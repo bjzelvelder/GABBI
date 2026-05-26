@@ -65,7 +65,7 @@ singularity build --fakeroot gabbi_v1.2.0.sif GABBI_v1.2.0.def
 ```
 This will create a ```.sif``` image that can be run the same way with:
 ```
-singularity run GABBI_v1.2.0.sif --help
+singularity run gabbi_v1.2.0.sif --help
 ```
 
 ### Building a GABBI sandbox
@@ -307,7 +307,7 @@ All targeted loci reduced to one multi-fasta file per marker can be found in ```
 GABBI has a built-in tool that I also designed to make such phylogenomic analysis straightforward, called **_Phylomera_**. We simply run _Phylomera_ through the singularity image, giving all targeted loci as input and asking for a species tree with the model of your choice. Here I use MFP+MERGE to minimize biaises that can result from over-partitionning our dataset.
 
 ```
-singularity exec GABBI_v1.2.0.sif phylomera_v0.8.3.sh \
+singularity exec gabbi_v1.2.0.sif phylomera_v0.8.3.sh \
     --config /opt/gabbi/config/phylomera.conf \
     --input GABBI_output/06_final_targeted_loci/targeted_loci/  \
     --output GABBI_output/06_final_targeted_loci/final_tree  \
@@ -351,10 +351,10 @@ parallel "
 Performing target capture with aTRAM on large simulated datasets can be computationally intensive, especially with a large amount of probes. To drastically reduce the amount of reads to process (incidentally simulating target capture), we will be using BBMap ([Bushnell 2014](#references); implemented in the GABBI image) to filter reads based on our probe set, with a soft threshold of 50% minimum identity.
 
 ```
-singularity exec GABBI_v1.2.0.sif bbmap.sh build=1 ref=baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80
-# Usage: singularity exec GABBI_v1.2.0.sif run_BBMap.sh <R1> <R2> <out_R1> <out_R2> <build> <threads>
+singularity exec gabbi_v1.2.0.sif bbmap.sh build=1 ref=baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80
+# Usage: singularity exec gabbi_v1.2.0.sif run_BBMap.sh <R1> <R2> <out_R1> <out_R2> <build> <threads>
 parallel -j 4 "
-    singularity exec GABBI_v1.2.0.sif run_BBMap.sh {}/{/}.R1.trim.fastq.gz {}/{/}.R2.trim.fastq.gz {}/{/}.R1.bbmap.fastq.gz {}/{/}.R2.bbmap.fastq.gz 1 8
+    singularity exec gabbi_v1.2.0.sif run_BBMap.sh {}/{/}.R1.trim.fastq.gz {}/{/}.R2.trim.fastq.gz {}/{/}.R1.bbmap.fastq.gz {}/{/}.R2.bbmap.fastq.gz 1 8
 " ::: chr_level_genomes/* additional_genomes/*
 
 ```
@@ -367,7 +367,7 @@ Filtered reads are now ready to be processed by aTRAM. I [slightly adjusted](htt
 ```
 mkdir -p aTRAM_db
 parallel "
-    singularity exec GABBI_v1.2.0.sif atram_preprocessor.py --blast-db=aTRAM_db/{/} --end-1={}/{/}.R1.bbmap.fastq.gz --end-2={}/{/}.R2.bbmap.fastq.gz --gzip --cpus 1
+    singularity exec gabbi_v1.2.0.sif atram_preprocessor.py --blast-db=aTRAM_db/{/} --end-1={}/{/}.R1.bbmap.fastq.gz --end-2={}/{/}.R2.bbmap.fastq.gz --gzip --cpus 1
 " ::: chr_level_genomes/* additional_genomes/*
 ```
 
@@ -375,13 +375,15 @@ The ```aTRAM_db``` folder contains all we need to run aTRAM, but we can prepare 
 
 ```
 mkdir -p split_probes_500 refseq_files
-singularity exec GABBI_v1.2.0.sif split_fasta.py baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80 split_probes_500 500
-for s in {0..480..20};do awk -v s="$s" 'FNR>s && FNR<=(s+20)' <(ls split_probes_500/*) > refseq_files/refseq_file$s.txt;done
+singularity exec gabbi_v1.2.0.sif split_fasta.py baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80 split_probes_500 500
+for s in {0..480..20};do
+    awk -v s="$s" 'FNR>s && FNR<=(s+20)' <(ls split_probes_500/*) > refseq_files/refseq_file$s.txt
+done
 ```
 
 We can now run aTRAM:
 ```
-# ON A SLURM CLUSTER: get run_aTRAM_v2.sh in [GABBI paper Supplementary files](https://doi.org/10.5281/zenodo.20327231), change slurm options and replace "singularity run aTRAM.sif" by "singularity exec GABBI_v1.2.0.sif atram.py"
+# ON A SLURM CLUSTER: get run_aTRAM_v2.sh in [GABBI paper Supplementary files](https://doi.org/10.5281/zenodo.20327231), change slurm options and replace "singularity run aTRAM.sif" by "singularity exec gabbi_v1.2.0.sif atram.py"
 mkdir -p slurm-logs capture
 for sp in chr_level_genomes/* additional_genomes/*; do
     for ref in refseq_files/*;do
@@ -395,7 +397,7 @@ for sp in chr_level_genomes/* additional_genomes/*; do
     mkdir -p capture/${sp##*/}/tmp capture/${sp##*/}/aTRAM
 done
 parallel -j 80 "
-    singularity exec GABBI_v1.2.0.sif atram.py \
+    singularity exec gabbi_v1.2.0.sif atram.py \
         -i 3 -Q {2} -b aTRAM_db/{1/} -o capture/{1/}/aTRAM/ \
         --evalue 1e-3 --word-size 11 --blast-max-target-seqs 100 \
         -a spades --spades-careful --spades-threads 1 --spades-memory 16 \
@@ -432,7 +434,7 @@ cons() {
     i=$1
     cd $i/cons
     # Usage: make_consensus_from_mafft_v3.R <all|aligned fasta> <iupac|majority|majseq|clusterize> <distance> [max cluster size (with majseq)]
-    singularity exec GABBI_v1.2.0.sif make_consensus_from_mafft_v3.R all majseq 0.05 0.1
+    singularity exec gabbi_v1.2.0.sif make_consensus_from_mafft_v3.R all majseq 0.05 0.1
 }
 export -f cons
 parallel -j 80 cons {} ::: capture/* > cons.GABBI.log
@@ -466,7 +468,7 @@ done
 The resulting folder is now ready to follow phylogenomic analyses. You can run _Phylomera_ using the reference sequences computed by GABBI in ```GABBI_output/06_final_targeted_loci/cactus_alignment.final.anc.loci.cons.fasta``` and your [annotated file](#annotate-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses) if you have one.
 
 ```
-singularity exec GABBI_v1.2.0.sif phylomera_v0.8.3.sh \
+singularity exec gabbi_v1.2.0.sif phylomera_v0.8.3.sh \
     -i aTRAM_results_bl_2 \
     -o phylomera_tax11.no_cds \
     -pre Curculioninae_GABBI.tax11.no_cds \
