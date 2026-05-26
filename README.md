@@ -329,76 +329,153 @@ Because GABBI offers a lot of reference sequences for each marker with ancestral
 
 ## Annotate targeted loci as coding or non-coding sequences for downstream analyses
 
-In order to improve downstream phylogenomic inferences, we also annotated our set of targeted loci as coding or non-coding (for codon-wide partitioning). This step requires you to have at least one finely annotated genome in your dataset. The idea is to fetch the coordinates of each targeted locus on each annotated genome and check with the GFF file if they overlap with coding sequences. We detailed our approach in the [GABBI paper supplementary data](zenodo) available on Zenodo, if you want to give it a try.
+In order to improve downstream phylogenomic inferences, we also annotated our set of targeted loci as coding or non-coding (for codon-wide partitioning). This step requires you to have at least one finely annotated genome in your dataset. The idea is to fetch the coordinates of each targeted locus on each annotated genome and check with the GFF file if they overlap with coding sequences. We detailed our approach in the [GABBI paper supplementary data](https://doi.org/10.5281/zenodo.20327231) available on Zenodo, if you want to give it a try.
 
 ## Test the probe set _in silico_ on whole genome sequences
 
-Lastly, we want to test our probe set on simulated target capture data. To do so, any whole genome sequences (WGS) can be used to get a bigger dataset than the one used to deign the probes. Multiple approaches have been proposed in the literature, allowing users to choose the method best suited to their needs (e.g. [PHYLUCE]](#references), [HybPiper]](#references), [IBA]](#references)). In this section, I will detail the approach I used in the [GABBI paper](#citation) using aTRAM [Allen et al. 2015](#references).
+Lastly, we want to test our probe set on simulated target capture data. To do so, any whole genome sequences (WGS) can be used to get a bigger dataset than the one used to design the probes. Multiple approaches have been proposed in the literature, allowing users to choose the method best suited to their needs (e.g. [PHYLUCE](#references), [HybPiper](#references), [IBA](#references)). In this section, I will detail the approach I used in the [GABBI paper](#citation) using aTRAM [Allen et al. 2015](#references).
 
-First of all, we need to get raw read data, either from real WGS data or simulating from an assembled genome. In the latter case, we can use ART Illumina ([Huang et al. 2012](#references)) with default options:
-
-```
-xxx
-```
-
-Performing target capture with aTRAM on large simulated datasets can be computationally intensive, especially with a large amount of probes. To drastically reduce the amount of reads to process (incidentally simulating target capture), we will be using BBMap ([Bushnell 2014](#references)) to filter reads based on our probe set, with a soft threshold of 50% minimum identity.
+First of all, we need to get raw read data, either from real WGS data or simulating them from a genome assembly. In the latter case, we can use ART Illumina ([Huang et al. 2012](#references)) with default options and trim the resulting file with fastp ([Chen et al. 2018](#references)):
 
 ```
-bbmap.sh ref xxx
-run_BBMap.sh xxx
+parallel "
+    art_illumina --paired --in {}/{/}.fasta --out {}/{/}.pe150-reads --len 150 --fcov 15 --mflen 500 --sdev 100 -na
+    gzip {}/{/}.pe150-reads*
+    fastp -i {}/{/}.pe150-reads1.fq.gz -I {}/{/}.pe150-reads2.fq.gz -o {}/{/}.R1.trim.fastq.gz -O {}/{/}.R2.trim.fastq.gz -h {}/fastp.html -j {}/fastp.json
+    rm {}/{/}.pe150-reads*
+" ::: chr_level_genomes/* additional_genomes/*
 ```
+> Note that we are using GNU parallel here to speed up the process, but this can be translated into a simple loop.
 
-Reads are now ready to be processed by aTRAM. I [slightly adjusted](https://github.com/juliema/aTRAM/issues/321) aTRAM scripts to process target capture data more efficiently on Spades 4.2.0 ([Prjibelski et al. 2020](#references)). Those changes are included in the GABBI singularity image as well. We first need to generate the databases for aTRAM to work with using the ```atram_preprocessor.py``` script.
 
-```
-singularity exec GABBI_v1.2.0.sif /opt/atram/atram_preprocessor.py xxx
-```
-
-The ```aTRAM_db``` folder contains all we need to run aTRAM, but we can prepare the probe set to parallelize the process and optimise computation time. The goal is to assemble reads iteratively using each probe sequence as a reference. Although this approach can be kind of overkill, it allows us to get multiple assemblies per marker, which offers some notion of coverage to evaluate duplicate sequences, contaminations and postprocess assemblies accordingly. The following commands apply to a HPC cluster with 500 CPUs available per user, but you can adjust them to your own ressources. The goal is to split the probe file into 500 files that will be processed each on one CPU, reducing the number of assemblies per CPU.
-
-```
-split fasta
-refseq files
-parallel -j xx singularity exec GABBI_v1.2.0.sif /opt/atram/atram.py xxx
-```
-
-aTRAM results are stored in each individual's subfolder (i.e. ```capture/Polydrusus_cervinus/aTRAM/```), including ```*all_contigs*``` and ```*filtered*``` files that respectively correspond to all spades assemblies, and assemblies blasted back to the reference to remove outliers. For each individual, we will be merging filtered assemblies from each marker in another subfolder ```capture/Polydrusus_cervinus/cons```:
+Performing target capture with aTRAM on large simulated datasets can be computationally intensive, especially with a large amount of probes. To drastically reduce the amount of reads to process (incidentally simulating target capture), we will be using BBMap ([Bushnell 2014](#references); implemented in the GABBI image) to filter reads based on our probe set, with a soft threshold of 50% minimum identity.
 
 ```
-regroup_uce
+singularity exec GABBI_v1.2.0.sif bbmap.sh build=1 ref=baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80
+# Usage: singularity exec GABBI_v1.2.0.sif run_BBMap.sh <R1> <R2> <out_R1> <out_R2> <build> <threads>
+parallel -j 4 "
+    singularity exec GABBI_v1.2.0.sif run_BBMap.sh {}/{/}.R1.trim.fastq.gz {}/{/}.R2.trim.fastq.gz {}/{/}.R1.bbmap.fastq.gz {}/{/}.R2.bbmap.fastq.gz 1 8
+" ::: chr_level_genomes/* additional_genomes/*
+
+```
+> Here, ```baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80``` is the name of the file containing our **probes**, not targeted loci (see [Generate your final probe set](#generate-your-final-probe-set) section).
+> You should also be aware that BBMap requires a lot of memory, so don't launch too many processes in parallel.
+
+
+Filtered reads are now ready to be processed by aTRAM. I [slightly adjusted](https://github.com/juliema/aTRAM/issues/321) aTRAM scripts to process target capture data more efficiently on Spades 4.2.0 ([Prjibelski et al. 2020](#references)). Those changes are included in the GABBI singularity image as well. We first need to generate the databases for aTRAM to work with using the ```atram_preprocessor.py``` script:
+
+```
+mkdir -p aTRAM_db
+parallel "
+    singularity exec GABBI_v1.2.0.sif atram_preprocessor.py --blast-db=aTRAM_db/{/} --end-1={}/{/}.R1.bbmap.fastq.gz --end-2={}/{/}.R2.bbmap.fastq.gz --gzip --cpus 1
+" ::: chr_level_genomes/* additional_genomes/*
+```
+
+The ```aTRAM_db``` folder contains all we need to run aTRAM, but we can prepare the probe set to parallelize the process and optimise computation time. The goal is to assemble reads iteratively using each probe sequence as a reference. Although this approach can be kind of overkill, it allows us to get multiple assemblies per marker, which offers some notion of coverage to evaluate duplicate sequences, contaminations and postprocess assemblies accordingly. The following commands apply to a HPC cluster with 500 CPUs available per user, but you can adjust them to your own ressources. My goal is to split the probe file into 500 files that will be processed each on one CPU. 25 jobs will launch 20 instances of aTRAM in parallel, each running on one CPU, repeating that for each species of my dataset.
+
+```
+mkdir -p split_probes_500 refseq_files
+singularity exec GABBI_v1.2.0.sif split_fasta.py baits-Moderate-RM25pc-0MT-720061count.fas.clust-75-80 split_probes_500 500
+for s in {0..480..20};do awk -v s="$s" 'FNR>s && FNR<=(s+20)' <(ls split_probes_500/*) > refseq_files/refseq_file$s.txt;done
+```
+
+We can now run aTRAM:
+```
+# ON A SLURM CLUSTER: get run_aTRAM_v2.sh in [GABBI paper Supplementary files](https://doi.org/10.5281/zenodo.20327231), change slurm options and replace "singularity run aTRAM.sif" by "singularity exec GABBI_v1.2.0.sif atram.py"
+mkdir -p slurm-logs capture
+for sp in chr_level_genomes/* additional_genomes/*; do
+    for ref in refseq_files/*;do
+        sbatch -o slurm-logs/slurm-aTRAM_GABBI_${sp##*/}_${ref##*/}.log run_aTRAM_v2.sh capture/${sp##*/} aTRAM_db $ref
+    done
+done
+
+# ON A LOCAL COMPUTER: adjust CPU and spades memory depending on your ressources
+mkdir -p aTRAM_logs capture
+for sp in chr_level_genomes/* additional_genomes/*; do
+    mkdir -p capture/${sp##*/}/tmp capture/${sp##*/}/aTRAM
+done
+parallel -j 80 "
+    singularity exec GABBI_v1.2.0.sif atram.py \
+        -i 3 -Q {2} -b aTRAM_db/{1/} -o capture/{1/}/aTRAM/ \
+        --evalue 1e-3 --word-size 11 --blast-max-target-seqs 100 \
+        -a spades --spades-careful --spades-threads 1 --spades-memory 16 \
+        --cpus 1 -t capture/{1/}/tmp > aTRAM_logs/aTRAM_GABBI_{1/}_{2/}.log
+" ::: chr_level_genomes/* additional_genomes/* ::: split_fasta_500/*
+```
+
+aTRAM results are stored in each individual's subfolder (i.e. ```capture/Polydrusus_cervinus/aTRAM/```), which includes ```*all_contigs.fasta``` and ```*filtered.fasta``` files that respectively correspond to all spades assemblies, and assemblies blasted back to the reference to remove outliers. For each individual, we will be merging filtered assemblies from each marker in another subfolder ```capture/Polydrusus_cervinus/cons```:
+
+```
+regroup_uce() {
+    i=$1;
+    mkdir -p $i/cons;
+    find $i/aTRAM/ -type f -name "*filt*"|egrep -o "uce_[0-9]+_"|sort -u|while read uce;do sed -E "/>/s/>.*(contig_id=.*)/>${i##*/}__${uce}_\1/g" $i/aTRAM/*${uce}*filt* > $i/cons/${i##*/}_${uce}filtered.fasta;done;
+    find $i/cons/ -size 0 -print -delete;
+}
+export -f regroup_uce
+parallel -j 80 regroup_uce {} ::: capture/*
 ```
 
 Then, we want to compute pairwise distances between all assemblies of each marker to check duplicated sequences and contaminations. To do so, we first need to align them:
 
 ```
-mafft
+find capture -type f | grep "cons" > files_to_align.txt
+parallel -j 80 "mafft --auto --adjustdirectionaccurately {} > {.}.mafft.fasta" :::: files_to_align.txt
 ```
+> Note that at this point, each alignment file contains assemblies obtained from all probes targeting one locus. Thus, they are supposed to be identical.
+
 
 Then, get the consensus sequence resulting from the biggest cluster of nearly identical sequences (allowing 95% identity and a second biggest cluster size of 10% of the number of sequences in the alignment). It is important to store the log of this command as it will be useful to remove flagged markers later.
 
 ```
-make_consensus > consensus.log 2>&1
+cons() {
+    i=$1
+    cd $i/cons
+    # Usage: make_consensus_from_mafft_v3.R <all|aligned fasta> <iupac|majority|majseq|clusterize> <distance> [max cluster size (with majseq)]
+    singularity exec GABBI_v1.2.0.sif make_consensus_from_mafft_v3.R all majseq 0.05 0.1
+}
+export -f cons
+parallel -j 80 cons {} ::: capture/* > cons.GABBI.log
 ```
 
 Resulting assemblies can now be merged between all individuals to get one file per marker.
 
 ```
-transfer
+transfer() {
+    i=$1
+    out=$2
+    echo "Transferring $i loci into $out"
+    find $i/cons/ -type f -name "*.cons"|egrep -o "uce_[0-9]+_"|while read uce;do
+        sed -E "s/>.*/>"${i##*/}"__"${uce}"/g" $i/cons/*${uce}*cons >> $out/${uce%_*}.fasta
+    done
+}
+export -f transfer
+parallel -j 80 transfer {} aTRAM_results ::: capture/*
 ```
 
-During these postprocessing steps, we removed alignments that contained sequences from multiple origins (either due to duplication or contamination). Using the consensus logs, we can flag markers that were removed in multiple individuals and decide to remove markers that are found duplicated/contaminated in too many individuals. During the weevil GABBI probe design, I used a very stringent threshold to remove markers duplicated in more than 2 individuals, but this value can be greatly increased with true target capture data, expected to be much more contaminated than simulated and pre-filtered WGS data.
+During these postprocessing steps, we removed alignments that contained sequences from multiple origins (either due to duplication or contamination). Using the consensus command log, we can flag markers that were removed in multiple individuals and decide to remove markers that are found duplicated/contaminated in too many individuals. During the weevil GABBI probe design, I used a very stringent threshold to remove markers duplicated in more than 2 individuals, but this value can be greatly increased with real target capture data, expected to be much more contaminated than simulated and pre-filtered WGS data.
 
 ```
-blacklist
-grep -v
+grep "discarded" cons.GABBI.log |egrep -o "uce_[0-9]+_"|sort |uniq -c|sort -n|awk -v "threshold=2" '$1>threshold { print $2 }' > blacklisted_markers.2.GABBI.txt
+mkdir aTRAM_results_bl_2
+find aTRAM_results/ -type f|egrep -o "uce_[0-9]+"|sort -u|grep -v -f <(sed -E "s/_$/\$/g" blacklisted_markers.2.GABBI.txt )|while read uce;do
+    cat aTRAM_results/$uce.fasta > aTRAM_results_bl_2/$uce.fasta
+done
 ```
 
 The resulting folder is now ready to follow phylogenomic analyses. You can run _Phylomera_ using the reference sequences computed by GABBI in ```GABBI_output/06_final_targeted_loci/cactus_alignment.final.anc.loci.cons.fasta``` and your [annotated file](#annotate-targeted-loci-as-coding-or-non-coding-sequences-for-downstream-analyses) if you have one.
 
 ```
-phylomera
+singularity exec GABBI_v1.2.0.sif phylomera_v0.8.3.sh \
+    -i aTRAM_results_bl_2 \
+    -o phylomera_tax11.no_cds \
+    -pre Curculioninae_GABBI.tax11.no_cds \
+    -r GABBI_output/06_final_targeted_loci/cactus_alignment.final.anc.loci.cons.fasta \
+    -n 11 \
+    -g MFP -p 0 \
+    -t 80
 ```
-
+> This command will clean alignments, split core and flanking regions and run gene trees with IQ-TREE using ModelFinder to select the best fitted evolutionary model. To run a concatenated analysis, run the same command, replacing ```-g MFP -p 0``` by, for example, ```-s MFP+MERGE``` (if you want to chose the minimum percentage of taxa required to keep a marker interactively) or ```-s MFP+MERGE -p 70``` (for the typically utilised threshold of 70% spp.)
 
 ---
 # Detailed options
@@ -475,7 +552,7 @@ phylomera
 ```
 
 # Citation
-If you used the **GABBI** pipeline, please cite:
+If you used the **GABBI** pipeline or its dependencies, please cite:
 > B. Zelvelder, L. Benoit, A. Loiseau, J. Haran, R. Allio (2026) A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea); bioRxiv 2026.05.09.724036; doi: [https://doi.org/10.64898/2026.05.09.724036](https://doi.org/10.64898/2026.05.09.724036)
 
 # References
@@ -486,7 +563,9 @@ References cited on this page:
 > Breinholt JW, Earl C, Lemmon AR, Lemmon EM, Xiao L, Kawahara AY. 2018 Resolving relationships among the megadiverse butterflies and moths with a novel pipeline for anchored phylogenomics. Systematic Biology 67, 78–93. [doi:10.1093/sysbio/syx048](https://doi.org/10.1093/sysbio/syx048)
 > 
 > Bushnell B. 2014 BBMap: a fast, accurate, splice-aware aligner. United States: Ernest Orlando Lawrence Berkeley National Laboratory, Berkeley, CA (US).
-> 
+>
+> Chen S, Zhou Y, Chen Y, Gu J. 2018 fastp: an ultra-fast all-in-one FASTQ preprocessor. Bioinformatics 34, i884–i890. [doi:10.1093/bioinformatics/bty560](https://doi.org/10.1093/bioinformatics/bty560)
+>
 > Huang W, Li L, Myers JR, Marth GT. 2012 ART: a next-generation sequencing read simulator. Bioinformatics 28, 593–594. [doi:10.1093/bioinformatics/btr708](https://doi.org/10.1093/bioinformatics/btr708)
 >
 > Faircloth BC. 2016 PHYLUCE is a software package for the analysis of conserved genomic loci. Bioinformatics 32, 786–788. [doi:10.1093/bioinformatics/btv646](https://doi.org/10.1093/bioinformatics/btv646)
