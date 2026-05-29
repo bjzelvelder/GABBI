@@ -386,7 +386,7 @@ done
 
 aTRAM can then be run as follows:
 
-- ON A SLURM CLUSTER: retrieve run_aTRAM_v2.sh in [GABBI paper Supplementary files](https://doi.org/10.5281/zenodo.20327231), adjust slurm options, and replace ```singularity run aTRAM.sif``` by ```singularity exec gabbi_v1.2.0.sif atram.py```.
+- **ON A SLURM CLUSTER:** retrieve run_aTRAM_v2.sh in [GABBI paper Supplementary files](https://doi.org/10.5281/zenodo.20327231), adjust slurm options, and replace ```singularity run aTRAM.sif``` by ```singularity exec gabbi_v1.2.0.sif atram.py```.
 ```
 mkdir -p slurm-logs capture
 for sp in chr_level_genomes/* additional_genomes/*; do
@@ -396,7 +396,7 @@ for sp in chr_level_genomes/* additional_genomes/*; do
 done
 ```
 
-- ON A LOCAL COMPUTER: adjust the number of parallel jobs and spades memory according to available ressources.
+- **ON A LOCAL COMPUTER:** adjust the number of parallel jobs and spades memory according to available ressources.
 ```
 mkdir -p aTRAM_logs capture
 for sp in chr_level_genomes/* additional_genomes/*; do
