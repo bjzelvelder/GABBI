@@ -427,7 +427,7 @@ parallel -j 80 regroup_uce {} ::: capture/*
 Pairwise distances between all assemblies of each marker are then computed to detect duplicated sequences and potential contaminations. For this purpose, assemblies are first aligned:
 
 ```
-find capture -type f | grep "cons" > files_to_align.txt
+find capture -type f -name "*filtered.fasta" | grep "cons" > files_to_align.txt
 parallel -j 80 "mafft --auto --adjustdirectionaccurately {} > {.}.mafft.fasta" :::: files_to_align.txt
 ```
 > At this stage, each alignment file contains assemblies obtained from all probes targeting a given locus and should therefore be represented by highly similar sequences.
