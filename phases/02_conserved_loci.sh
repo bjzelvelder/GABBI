@@ -65,7 +65,7 @@ fi
 if checkpoint_done "step2.2_split_maf"; then
     echo "[GABBI] Skipping step 2.2 — checkpoint found."
 else
-    if checkpoint_fail_exists "step2.2_shr_extraction"; then
+    if checkpoint_fail_exists "step2.2_split_maf"; then
         rm -rf bed
     fi
 
