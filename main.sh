@@ -126,11 +126,12 @@ fi
 [[ -n "${CROSS_BLAST_QC:-}" && ! "$CROSS_BLAST_QC" =~ ^([1-9][0-9]?|100)$ ]] && echo "[GABBI] ERROR: --cross-blast-qc '${CROSS_BLAST_QC}' must be an integer between 1 and 100 (percentage)." >&2 && exit 1
 
 [[ -n "${TEMP_TAX_THRESHOLD:-}" && ! "$TEMP_TAX_THRESHOLD" =~ ^([1-9][0-9]?|100)$ ]] && echo "[GABBI] ERROR: --temp-tax-threshold '${TEMP_TAX_THRESHOLD}' must be an integer between 1 and 100 (percentage)." >&2 && exit 1
-[[ -n "${TEMP_ALLOW_DUPES:-}" && "$TEMP_ALLOW_DUPES" > $N_CHR_TAXA && ! "$TEMP_ALLOW_DUPES" =~ ^[0-9]+$ ]] && echo "[GABBI] ERROR: --temp-allow-dupes '${TEMP_ALLOW_DUPES}' must be a non-negative integer." >&2 && exit 1
+[[ -n "${TEMP_ALLOW_DUPES:-}" && ! "$TEMP_ALLOW_DUPES" =~ ^[0-9]+$ ]] && echo "[GABBI] ERROR: --temp-allow-dupes '${TEMP_ALLOW_DUPES}' must be a non-negative integer." && exit 1
+[[ -n "${TEMP_ALLOW_DUPES:-}" && "$TEMP_ALLOW_DUPES" -gt "$N_CHR_TAXA" ]] && echo "[GABBI] ERROR: --temp-allow-dupes '${TEMP_ALLOW_DUPES}' must not be greater than $N_CHR_TAXA." && exit 1
 
 # -- Final probe design options ---------------------------------------------
 [[ -n "${SHR_THRESHOLD:-}" && ! "$SHR_THRESHOLD" =~ ^([1-9][0-9]?|100)$ ]] && echo "[GABBI] ERROR: --shr-threshold '${SHR_THRESHOLD}' must be an integer between 1 and 100 (percentage)." >&2 && exit 1
-[[ -n "${FP_TILING_DENSITY:-}" && ! "$TEMP_ALLOW_DUPES" =~ ^[1-9][0-9]*$ ]] && echo "[GABBI] ERROR: --final-probes-tiling '${FP_TILING_DENSITY}' must be a positive integer." >&2 && exit 1
+[[ -n "${FP_TILING_DENSITY:-}" && ! "$FP_TILING_DENSITY" =~ ^[1-9][0-9]*$ ]] && echo "[GABBI] ERROR: --final-probes-tiling '${FP_TILING_DENSITY}' must be a positive integer." >&2 && exit 1
 [[ -n "${FP_MASKING:-}" && ! "$FP_MASKING" =~ ^0(\.[0-9]+)?$|^1(\.0+)?$ ]] && echo "[GABBI] ERROR: --final-probes-masking '${FP_MASKING}' must be a number between 0 and 1." >&2 && exit 1
 
 # -- General options --------------------------------------------------------
