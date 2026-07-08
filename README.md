@@ -34,7 +34,7 @@ To run this pipeline, the only requirements are the [singularity image](https://
 
 ---
 # Installation
-The GABBI pipeline relies on **singularity** to execute within a pre-built container environment (a _singularity image_), eliminating installation issues and incompatibilities. Consequently, the only requirement is a Linux environment with ```apptainer version >= 1.0.0``` or ```singularity version >= 3.0.0```. To install apptainer, instructions are available at: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, all commands below use the ```singularity``` prefix, but these are fully interchangeable with ```apptainer```.
+The GABBI pipeline relies on **singularity** to execute within a pre-built container environment (a _singularity image_), eliminating installation issues and incompatibilities. Consequently, the only requirement is a Linux environment with ```apptainer version >= 1.0.0``` or ```singularity version >= 3.8.0```. To install apptainer, instructions are available at: [Installing apptainer](https://apptainer.org/docs/admin/main/installation.html). For clarity, all commands below use the ```singularity``` prefix, but these are fully interchangeable with ```apptainer```.
 
 GABBI is distributed as a Singularity image and has no external dependencies beyond Singularity/Apptainer itself. On HPC clusters managed by SLURM, Singularity is typically available as an environment module that can be searched with ```module search singularity``` and can be loaded with ```module load <singularity module>``` prior to execution.
 
