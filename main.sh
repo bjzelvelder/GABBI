@@ -61,7 +61,7 @@ GABBI_WORKDIR="${OUT:-GABBI_out}"
 
 [[ -z "${HAL:-}" && -z "${CHR_GENOMES:-}" ]] && echo "[GABBI] ERROR: --chr-genomes OR --hal is required. Please provide a path to the directory containing chromosome-level genomes with --chr-genomes or a HAL cactus alignment file with --hal." && exit 1
 
-[[ -n "${CHR_GENOMES:-}" && ! -d "$CHR_GENOMES" ]] && echo "[GABBI] ERROR: --chr-genomes '${CHR_GENOMES}' does not exist or is not a directory." >&2 && exit 1
+[[ -n "${CHR_GENOMES:-}" && ! -d "$CHR_GENOMES" ]] && echo "[GABBI] ERROR: --chr-genomes '${CHR_GENOMES}' does not exist or is not a directory (current working dir: $PWD)." >&2 && exit 1
 [[ -n "${CHR_GENOMES:-}" && -n "$(find "${CHR_GENOMES}" -maxdepth 1 -mindepth 1 -type d -name '*.*')" ]] && echo "[GABBI] ERROR: Chromosome-level genome folders should not contain any \".\"." >&2 && exit 1
 
 [[ -n "${HAL:-}" && ! -f "${HAL:-}" ]] && echo "[GABBI] ERROR: --hal '${HAL}' does not exist or is not a file." >&2 && exit 1
