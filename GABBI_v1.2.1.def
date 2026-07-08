@@ -3,7 +3,7 @@ From: ubuntu:22.04
 
 %labels
     Author      Benjamin Zelvelder
-    Version     1.2.0
+    Version     1.2.1
     Description Genome Alignment Based Bait Inference (GABBI): A fully automated probe design pipeline
                 based on whole-genome alignments for target capture phylogenomics
 
@@ -15,10 +15,10 @@ From: ubuntu:22.04
     This pipeline requires Singularity >= 3.8 or Apptainer >= 1.0
 
     To view detailed options of the GABBI pipeline, run:
-        singularity run GABBI_v1.2.0.sif --help
+        singularity run GABBI_v1.2.1.sif --help
 
     If you want to build the singularity image manually using the definition file, run:
-        singularity build --fakeroot GABBI_v1.2.0.sif GABBI_v1.2.0.def
+        singularity build --fakeroot GABBI_v1.2.1.sif GABBI_v1.2.1.def
 
     If you are using the GABBI pipeline, please cite the GABBI publication:
 	- B. Zelvelder, L. Benoit, A. Loiseau, J. Haran, R. Allio (2026) A new method based on genome alignments provides a highly resolutive target enrichment set for weevils (Coleoptera, Curculionoidea). bioRxiv 2026.05.09.724036. (https://doi.org/10.64898/2026.05.09.724036)
