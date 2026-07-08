@@ -25,9 +25,10 @@ checkpoint_mark() {
 }
 
 checkpoint_fail() {
+    local rc=$?
     local step="$1"
     touch "${CHECKPOINT_DIR}/${step}.fail"
-    echo "[GABBI] ERROR: Step '${step}' failed (exit code $?). Exiting." >&2
+    echo "[GABBI] ERROR: Step '${step}' failed (exit code ${rc}). Exiting." >&2
     exit 1
 }
 
