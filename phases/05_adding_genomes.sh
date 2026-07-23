@@ -11,8 +11,7 @@ mkdir -p 05_adding_genomes
 cd 05_adding_genomes
 
 source /opt/miniconda3/etc/profile.d/conda.sh
-conda init --all > /dev/null 2>&1
-conda activate phyluce
+conda activate /opt/miniconda3/envs/phyluce
 
 # ---------------------------------------------------------------------------
 # Step 5.1 — Generate tiled temporary probes
