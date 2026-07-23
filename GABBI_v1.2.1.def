@@ -41,7 +41,13 @@ From: ubuntu:22.04
 %environment
     export LC_ALL=C.UTF-8
     export LANG=C.UTF-8
+    export PYTHONNOUSERSITE=1
+    export CONDA_ENVS_PATH=/opt/miniconda3/envs
+    export R_LIBS_USER=/opt/R/library
+    export R_LIBS=/opt/R/library
     export PERL5LIB=/opt/perl5/lib/perl5:$PERL5LIB
+    export PYTHONPATH=/opt/cactus/lib:$PYTHONPATH
+    export LD_LIBRARY_PATH=/opt/cactus/lib:/opt/bpp/lib
     export PATH=\
 /opt/perl5/bin:\
 /opt/gabbi/scripts:\
@@ -54,18 +60,12 @@ From: ubuntu:22.04
 /opt/bbmap:\
 /opt/miniconda3/bin:\
 $PATH
-    export PYTHONPATH=/opt/cactus/lib:$PYTHONPATH
-    export LD_LIBRARY_PATH=/opt/cactus/lib:$LD_LIBRARY_PATH
-    export LD_LIBRARY_PATH=/opt/bpp/lib:$LD_LIBRARY_PATH
     export LG_UTILS_PATH="/opt/omm_macse/UTILS"
     export LG_MAFFT="mafft"
     export LG_MUSCLE="muscle"
     export LG_PRANK="/opt/prank/bin/prank"
     export LG_MACSE="/opt/omm_macse/UTILS/macse_v2.08.jar"
     export LG_HMMCLEANER="/opt/omm_macse/UTILS/HMMcleanerV1_8_VR2/HMMcleanAA_VR.pl"
-    export R_LIBS_USER=/opt/R/library
-    export R_LIBS=/opt/R/library
-    source /opt/miniconda3/etc/profile.d/conda.sh
     export BASH_ENV=/opt/etc/bashrc
 
 %files
