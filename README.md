@@ -43,7 +43,15 @@ Because singularity images are too large to be stored on GitHub, the ```.sif``` 
 ```
 singularity pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.2.1
 ```
-The help section can then be accessed with:
+
+If you are using **apptainer**, you might need to specify apptainer to access SylabsCloud:
+```
+apptainer remote add --no-login SylabsCloud cloud.sylabs.io
+apptainer remote use SylabsCloud
+apptainer pull --arch amd64 library://bjzelvelder/pipeline/gabbi:v1.2.1
+```
+
+The help section should then be accessed with:
 ```
 singularity run-help gabbi_v1.2.1.sif
 singularity run gabbi_v1.2.1.sif --help
