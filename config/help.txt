@@ -1,6 +1,6 @@
 
-    GABBI v1.2.0 — Genome Alignment-Based Bait Inference pipeline
-    ======================================================
+    GABBI v1.2.2 — Genome Alignment-Based Bait Inference pipeline
+    =============================================================
 
     Main arguments
     ------------------
