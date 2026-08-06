@@ -359,7 +359,7 @@ EOF
     chmod 777 /opt/ucsc_tools/faToTwoBit
     chmod 777 /opt/omm_macse/OMM_MACSE/*.sh
     chmod -R 777 /opt/omm_macse/UTILS/LGS_Fasta/*.sh
-    chmod 777 /opt/miniconda3/lib/python3.13/site-packages/amas/AMAS.py
+    chmod 777 /opt/miniconda3/lib/python3.*/site-packages/amas/AMAS.py
     chmod -R 777 /opt/atram
     chmod -R 777 /opt/miniconda3/envs/aTRAM/bin
     find /opt/miniconda3/envs/aTRAM/lib/python3.*/site-packages/lib \
