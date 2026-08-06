@@ -353,13 +353,14 @@ EOF
     # --- Other Phylomera dependencies ------------------------------------------
     conda install bioconda::seqkit
     python3 -m pip install -U amas
-
+    
     # --- Make all tools executable ---------------------------------------------
     find /opt/gabbi \( -name "*.sh" -o -name "*.py" \) -exec chmod 755 {} \;
     chmod 777 /opt/ucsc_tools/faToTwoBit
     chmod 777 /opt/omm_macse/OMM_MACSE/*.sh
     chmod -R 777 /opt/omm_macse/UTILS/LGS_Fasta/*.sh
     chmod 777 /opt/miniconda3/lib/python3.*/site-packages/amas/AMAS.py
+    ln -s /opt/miniconda3/lib/python3.*/site-packages/amas/AMAS.py /opt/miniconda3/bin/AMAS.py
     chmod -R 777 /opt/atram
     chmod -R 777 /opt/miniconda3/envs/aTRAM/bin
     find /opt/miniconda3/envs/aTRAM/lib/python3.*/site-packages/lib \
