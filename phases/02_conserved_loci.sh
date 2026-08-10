@@ -198,8 +198,7 @@ else
     mkdir -p 2bit_genomes conserved_loci phyluce_logs
     
     source /opt/miniconda3/etc/profile.d/conda.sh
-    conda init --all
-    conda activate phyluce
+    conda activate /opt/miniconda3/envs/phyluce
 
     for genome in $(cat "$MAF_REFS"); do
         

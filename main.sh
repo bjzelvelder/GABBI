@@ -83,7 +83,11 @@ verbose "N_CHR_TAXA = $N_CHR_TAXA"
 
 [[ -z "${ADD_GENOMES:-}" ]] && echo "[GABBI] WARNING: No additional genomes provided. GABBI will stop before phase '05_adding_genomes'. To finish running GABBI with additional genomes, rerun the same command with --add-genomes option." >&2 && STOP_BEFORE="05"
 [[ -n "${ADD_GENOMES:-}" && ! -d "$ADD_GENOMES" ]] && echo "[GABBI] ERROR: --add-genomes '${ADD_GENOMES}' does not exist or is not a directory." >&2 && exit 1
-export N_ADD_TAXA=$(ls -d "$ADD_GENOMES"/*/ 2>/dev/null |wc -l)
+if [[ -n "${ADD_GENOMES:-}" && -d "${ADD_GENOMES}" ]]; then
+    export N_ADD_TAXA=$(ls -d "${ADD_GENOMES}"/*/ 2>/dev/null | wc -l)
+else
+    export N_ADD_TAXA=0
+fi
 
 if [[ -n "${ADD_GENOMES:-}" && "$N_ADD_TAXA" -eq 0 ]];then
     echo "[GABBI] ERROR: --add-genomes '${ADD_GENOMES}' contains no subdirectory." >&2
