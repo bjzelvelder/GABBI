@@ -39,7 +39,7 @@ else
         cat split_loci/*__{}__* > targeted_loci/{}.fasta
     " ::: $(tail -n +4 "$GABBI_WORKDIR"/05_adding_genomes/final_phyluce_probes/${PRE}.${SHR_THRESHOLD}.conf)
     
-	for i in $(find targeted_loci -type f -name "*.fasta"):do
+	for i in $(find targeted_loci -type f -name "*.fasta"); do
         mv $i ${i/uce/shr}
 	done
 	
