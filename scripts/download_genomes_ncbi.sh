@@ -36,6 +36,35 @@ if [ -z "$genbank_col" ] || [ -z "$species_col" ] || [ -z "$level_col" ]; then
     exit 1
 fi
 
+# Remove duplicate assemblies sharing the same GenBank identifier
+# When both GCA and GCF are present we keep the GCA record and drop the GCF
+filtered_table=$(mktemp)
+trap 'rm -f "$filtered_table"' EXIT
+
+awk -v gb="$genbank_col" 'BEGIN{FS=OFS="\t"}
+NR==1 { print; next }                       # keep header untouched
+{
+    core = $gb
+    sub(/^GC[AF]_/, "", core)               # strip GCA_/GCF_ prefix
+    sub(/\..*$/,    "", core)               # strip .version suffix
+    lines[NR] = $0
+    accs[NR]  = $gb
+    cores[NR] = core
+    if (substr($gb, 1, 3) == "GCA") has_gca[core] = 1
+    order[++n] = NR
+}
+END {
+    for (i = 1; i <= n; i++) {
+        r = order[i]
+        if (substr(accs[r], 1, 3) == "GCF" && has_gca[cores[r]]) {
+            printf("WARNING: duplicate identifier %s -> dropping RefSeq record %s (keeping the GCA record)\n", \
+                   cores[r], accs[r]) > "/dev/stderr"
+            continue
+        }
+        print lines[r]
+    }
+}' "$table" > "$filtered_table"
+
 # Output subdirectories
 CHR_DIR="chr_level_genomes"
 ADD_DIR="additional_genomes"
@@ -44,7 +73,7 @@ mkdir -p "$CHR_DIR" "$ADD_DIR"
 WORKDIR=$(pwd)
 
 # Process data lines (skip header)
-awk 'BEGIN{FS=OFS="\t"} {for(i=1;i<=NF;i++) if($i=="") $i="NA"; print}' "$table" | tail -n +2 | while IFS=$'\t' read -ra fields; do
+awk 'BEGIN{FS=OFS="\t"} {for(i=1;i<=NF;i++) if($i=="") $i="NA"; print}' "$filtered_table" | tail -n +2 | while IFS=$'\t' read -ra fields; do
 
     genbank="${fields[$((genbank_col - 1))]}"
     species_name="${fields[$((species_col - 1))]}"
