@@ -135,6 +135,7 @@ else
             {}
     ' ::: $(find ancestral_seqs/ -type f -name "*.ok.fasta") \
     > ${PRE}.final.anc.loci.fasta
+	sed -i 's/\([^>]\)>/\1\n>/g' ${PRE}.final.anc.loci.fasta
 
     # Make a consensus for phylomera references
     mkdir -p final_consensus_loci
