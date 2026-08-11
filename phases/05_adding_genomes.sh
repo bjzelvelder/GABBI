@@ -56,7 +56,7 @@ else
     for genome in "$ADD_GENOMES"/*;do
         base=$(basename "$genome")
         genome_fasta=$(find "$genome" \( -name "*.fasta" -o -name "*.fas" -o -name "*.fna" \) -type f)
-        verbose "faToTwoBit genome_fasta=$genome_fasta"
+        verbose "Running faToTwoBit on genome_fasta=$genome_fasta"
         mkdir -p add_genomes_2bit/${base}
         faToTwoBit "$genome_fasta" "add_genomes_2bit/${base}/${base}.2bit" \
             || checkpoint_fail "step5.2_add_genomes_prep"
@@ -69,6 +69,7 @@ else
             genome=$(basename "$chr")
             mkdir -p add_genomes_2bit/${genome}
             genome_fasta=$(find "$CHR_GENOMES/$genome" \( -name "*.fasta" -o -name "*.fas" -o -name "*.fna" \) -type f)
+            verbose "Running faToTwoBit on genome_fasta=$genome_fasta"
             faToTwoBit "$genome_fasta" "add_genomes_2bit/${genome}/${genome}.2bit" \
                 || checkpoint_fail "step5.2_add_genomes_prep"
         done
@@ -78,6 +79,7 @@ else
             echo "[GABBI] Getting $genome genome from $HAL..."
             hal2fasta "$HAL" "$genome" > "add_genomes_2bit/${genome}/${genome}.fasta" \
                 || checkpoint_fail "step5.2_add_genomes_prep"
+            verbose "Running faToTwoBit on genome_fasta=$genome_fasta"
             faToTwoBit "add_genomes_2bit/${genome}/${genome}.fasta" "add_genomes_2bit/${genome}/${genome}.2bit" \
                 || checkpoint_fail "step5.2_add_genomes_prep"
             rm "add_genomes_2bit/${genome}/${genome}.fasta"
