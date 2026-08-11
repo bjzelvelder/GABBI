@@ -20,7 +20,7 @@ if checkpoint_done "step5.1_temp_probes"; then
     echo "[GABBI] Skipping step 5.1 — checkpoint found."
 else
     if checkpoint_fail_exists "step5.1_temp_probes"; then
-        rm -f temp_probes
+        rm -rf temp_probes
     fi
 
     echo "[GABBI] Step 5.1: Generating tiled temporary probes..."
