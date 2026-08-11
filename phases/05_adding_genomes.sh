@@ -48,10 +48,11 @@ else
         rm -rf add_genomes_2bit
     fi  
 
-    echo "[GABBI] Step 5.2: Preparing additional genome assemblies..."
+    echo "[GABBI] Step 5.2: Preparing additional genomes..."
 
     mkdir -p add_genomes_2bit
 
+    # Get 2bit files for each additional genome
     for genome in "$ADD_GENOMES"/*;do
         base=$(basename "$genome")
         genome_fasta=$(find "$genome" \( -name "*.fasta" -o -name "*.fas" -o -name "*.fna" \) -type f)
@@ -61,35 +62,25 @@ else
             || checkpoint_fail "step5.2_add_genomes_prep"
     done
 
-    # Symlink chromosome-level genomes already used by Cactus
-    echo "[GABBI] Gathering chromosome-level genomes..."
+    # Get 2bit files for each chromosomal genome
+    echo "[GABBI] Preparing chromosomal genomes..."
     if [[ -n "$CHR_GENOMES" ]]; then
         for chr in "$CHR_GENOMES"/*; do
             genome=$(basename "$chr")
             mkdir -p add_genomes_2bit/${genome}
-            if [[ -f "$GABBI_WORKDIR"/02_conserved_loci/2bit_genomes/${genome}.2bit ]]; then
-                ln -sf "$GABBI_WORKDIR"/02_conserved_loci/2bit_genomes/${genome}.2bit add_genomes_2bit/${genome}/ \
+            genome_fasta=$(find "$CHR_GENOMES/$genome" \( -name "*.fasta" -o -name "*.fas" -o -name "*.fna" \) -type f)
+            faToTwoBit "$genome_fasta" "add_genomes_2bit/${genome}/${genome}.2bit" \
                 || checkpoint_fail "step5.2_add_genomes_prep"
-            else
-                genome_fasta=$(find "$CHR_GENOMES/$genome" \( -name "*.fasta" -o -name "*.fas" -o -name "*.fna" \) -type f)
-                faToTwoBit "$genome_fasta" "add_genomes_2bit/${genome}/${genome}.2bit" \
-                || checkpoint_fail "step5.2_add_genomes_prep"
-            fi
         done
     else
         for genome in $(halStats "$HAL"|awk -F"[ ,]" '$3==0{ print $1 }'); do
             mkdir -p add_genomes_2bit/${genome}
-            if [[ -f "$GABBI_WORKDIR"/02_conserved_loci/2bit_genomes/${genome}.2bit ]]; then
-                ln -sf "$GABBI_WORKDIR"/02_conserved_loci/2bit_genomes/${genome}.2bit add_genomes_2bit/${genome}/ \
+            echo "[GABBI] Getting $genome genome from $HAL..."
+            hal2fasta "$HAL" "$genome" > "add_genomes_2bit/${genome}/${genome}.fasta" \
                 || checkpoint_fail "step5.2_add_genomes_prep"
-            else
-                echo "[GABBI] Getting $genome genome from $HAL..."
-                hal2fasta "$HAL" "$genome" > "add_genomes_2bit/${genome}/${genome}.fasta" \
+            faToTwoBit "add_genomes_2bit/${genome}/${genome}.fasta" "add_genomes_2bit/${genome}/${genome}.2bit" \
                 || checkpoint_fail "step5.2_add_genomes_prep"
-                faToTwoBit "add_genomes_2bit/${genome}/${genome}.fasta" "add_genomes_2bit/${genome}/${genome}.2bit" \
-                || checkpoint_fail "step5.2_add_genomes_prep"
-                rm "add_genomes_2bit/${genome}/${genome}.fasta"
-            fi
+            rm "add_genomes_2bit/${genome}/${genome}.fasta"
         done
     fi
 
