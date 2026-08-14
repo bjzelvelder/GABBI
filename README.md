@@ -322,7 +322,7 @@ singularity exec gabbi_v1.2.2.sif phylomera_v0.8.3.sh \
     --config /opt/gabbi/config/phylomera.conf \
     --input GABBI_output/06_final_targeted_loci/targeted_loci/  \
     --output GABBI_output/06_final_targeted_loci/final_tree  \
-    --prefix GABBI_Chryso_10IV2026  \
+    --prefix GABBI_Curculioninae_v1  \
     --threads 64  \
     --sptree MFP+MERGE  \
     --perc 70  \
