@@ -285,7 +285,7 @@ Here is a more detailed list of GABBI outputs generated on the example dataset w
   - ```consensus_loci/cactus_alignment.70.phyluce.loci.cons.fasta```: Consensus sequences of the PHYLUCE final probe set.
   - ```multifasta_table/cactus_alignment.table```: Table reporting the number of loci conserved by X% of taxa (from 0 to 100%; useful for adjusting the ```--shr-threshold``` option).
 - ```06_final_targeted_loci```
-  - ```final_alignments/```: _Phylomera_ alignments of the final set of targeted loci. These can be used to easily reconstruct a species tree of all genomes in the dataset (see the following section [Phylogeny of the final set of targeted loci](#run-a-species-tree-using-the-final-set-of-targeted-loci)).
+  - ```final_alignments/```: _Phylomera_ alignments of the final set of targeted loci. These can be used to easily reconstruct a species tree of all genomes in the dataset (see the following section [Phylogeny of the final set of targeted loci](#running-a-species-tree-using-the-final-set-of-targeted-loci)).
   - ```cactus_alignment.final.anc.loci.fasta```: Final set of targeted SHR and ancestral sequences.
   - ```cactus_alignment.final.anc.loci.cons.fasta```: Consensus sequences of the final set of targeted loci (to be used as references during phylogenomic alignments)
 
