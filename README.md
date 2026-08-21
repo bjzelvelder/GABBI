@@ -483,6 +483,7 @@ The resulting directory is finally ready to follow phylogenomic analyses. _Phylo
 
 ```
 singularity exec gabbi_v1.2.2.sif phylomera_v0.8.3.sh \
+    --config /opt/gabbi/config/phylomera.conf \
     -i aTRAM_results_bl_2 \
     -o phylomera_tax11.no_cds \
     -pre Curculioninae_GABBI.tax11.no_cds \
