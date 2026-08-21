@@ -328,7 +328,8 @@ singularity exec gabbi_v1.2.2.sif phylomera_v0.8.3.sh \
     --perc 70  \
     --continue
 ```
-> Please refer to _Phylomera_ ```--help``` section to for parameter details.
+> The ```--continue``` option allows you to rerun the script with different ```--perc```, ```--genetrees``` or ```--sptree``` values without restarting alignments.
+> Please refer to _Phylomera_ ```--help``` section for other parameter details.
 
 Upon completion, IQ-TREE output files will be available in ```GABBI_output/06_final_targeted_loci/final_tree/TREES```.
 
@@ -484,15 +485,17 @@ The resulting directory is finally ready to follow phylogenomic analyses. _Phylo
 ```
 singularity exec gabbi_v1.2.2.sif phylomera_v0.8.3.sh \
     --config /opt/gabbi/config/phylomera.conf \
-    -i aTRAM_results_bl_2 \
-    -o phylomera_tax11.no_cds \
-    -pre Curculioninae_GABBI.tax11.no_cds \
-    -r GABBI_output/06_final_targeted_loci/cactus_alignment.final.anc.loci.cons.fasta \
-    -n 11 \
-    -g MFP -p 0 \
-    -t 80
+    --input aTRAM_results_bl_2 \
+    --output phylomera_tax11.no_cds \
+    --prefix Curculioninae_GABBI.tax11.no_cds \
+    --refs GABBI_output/06_final_targeted_loci/cactus_alignment.final.anc.loci.cons.fasta \
+    --ntax 11 \
+    --genetrees MFP \
+    --perc 0 \
+    --threads 80 \
+    --continue
 ```
-> This command performs alignment cleaning, splits core and flanking regions, and infers gene trees with IQ-TREE using ModelFinder for substitution model selection. To run a concatenated analysis, replace ```-g MFP -p 0``` with, for example, ```-s MFP+MERGE``` (to select the minimum percentage of taxa required to keep a marker interactively) or ```-s MFP+MERGE -p 70``` (to apply the commonly used threshold of 70% taxon completeness). Running this command after the completion of gene trees will **not** overwrite or delete them.
+> This command performs alignment cleaning, splits core and flanking regions, and infers gene trees with IQ-TREE using ModelFinder for substitution model selection. To run a concatenated analysis, replace ```--genetrees MFP --perc 0``` with, for example, ```--sptree MFP+MERGE``` (to select the minimum percentage of taxa required to keep a marker interactively) or ```--sptree MFP+MERGE --perc 70``` (to apply the commonly used threshold of 70% taxon completeness). Running this command after the completion of gene trees will **not** overwrite or delete them.
 
 ---
 # Detailed options
